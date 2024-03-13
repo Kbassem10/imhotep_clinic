@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body class="centered">
+    {% include 'nav.html' %}
+
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+
+    <br><br>
+    <h1 class="centered animate__animated animate__pulse">Select Times</h1><br><br>
+    <form action="/add_appoint_times" method="post">
+        <div class="mydict">
+            <div>
+                <input autocomplete="off" autofocus name="time1" placeholder="From Time" type="time" class="input">&nbsp;&nbsp;
+                <input autocomplete="off" autofocus name="time2" placeholder="To Time" type="time" class="input">&nbsp;&nbsp;
+                <input autocomplete="off" autofocus name="seperate_time" placeholder="Seperate Time 'In Min'" type="number" class="input">
+            </div>
+        </div>
+        <div class="mydict">
+            <div>
+                <label>
+                    <input type="radio" name="day" id="" value="Sunday" required>
+                    <span>Sunday</span>
+                </label>
+                <label>
+                    <input type="radio" name="day" id="" value="Monday" required>
+                    <span>Monday</span>
+                </label>
+                <label>
+                    <input type="radio" name="day" id="" value="Tuesday">
+                    <span>Tuesday</span>
+                </label>
+                <label>
+                    <input type="radio" name="day" id="" value="Wednesday">
+                    <span>Wednesday</span>
+                </label>
+                <label>
+                    <input type="radio" name="day" id="" value="Thursday">
+                    <span>Thursday</span>
+                </label>
+                <label>
+                    <input type="radio" name="day" id="" value="Friday">
+                    <span>Friday</span>
+                </label>
+                <label>
+                    <input type="radio" name="day" id="" value="Saturday">
+                    <span>Saturday</span>
+                </label>
+            </div>
+            <br><br>
+            <button type="submit" class="btn-blue">Add Times</button>
+    </form>
+    </div>
+    <table class="c">
+        <input name="doc_id" id="doc_id" type="hidden" value="{{ doctor[0].doc_id }}">
+        <br>
+        <thead>
+            <tr>
+                <th>Day</th>
+                <th>From Time</th>
+                <th>To Time</th>
+                <th>Seperate Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for time in time %}
+            <tr>
+                <td>{{ time.day }}</td>
+                <td>{{ time.time1 }}</td>
+                <td>{{ time.time2 }}</td>
+                <td>{{ time.seperate_time }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+{% include 'footer_doctor.html' %}
+
+</html>

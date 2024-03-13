@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>login</title>
+    {% include 'css.html' %}
+</head>
+
+<body style="background-color:  #202761;">
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+    <h1 class="centered animate__animated animate__pulse" style="color: white;">Login</h1>
+    <div class="navbar">
+        <a href="/">Back</a>
+    </div>
+    <br><br><br><br>
+    <div class="login-box">
+        <form action="/login" method="post">
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="username" type="text" required="">
+                <label>Username</label>
+            </div>
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="password" type="password" required="">
+                <label>Password</label>
+            </div>
+            <a>
+                <button type="submit" class="transparent-button1">Login</button>
+            </a>
+        </form>
+        <br>
+    </div>  
+</body>
+</html>

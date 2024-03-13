@@ -1,0 +1,15 @@
+{
+    "name": "KB Clinic",
+    "short_name": "KBClinic",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#ffffff",
+    "icons": [
+        {
+            "src": "kbclinic1.ico",
+            "sizes": "192x192",
+            "type": "image/png"
+        }
+    ]
+}

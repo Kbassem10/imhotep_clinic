@@ -1,0 +1,4 @@
+How to run:
+1. import all of the libraries on the requirments.txt
+2. open the terminale and change directory to the place where the folder is saved to the place where the app.py is located
+3. write "python -m flask run" or "flask run"

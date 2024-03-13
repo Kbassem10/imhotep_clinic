@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+    <title>Home Page</title>
+</head>
+
+<body class="centered">
+    <br><br><br><br><br><br><br><br><br><br>
+    <table>
+        <form action="/patient_view">
+            <button class="btn-new animate__animated animate__pulse">Patient</button>
+        </form>
+        <form action="/logout" method="post">
+            <button class="btn-new animate__animated animate__pulse">User</button>
+        </form>
+    </table>
+    <div class="text-centered">
+        <img src="{{ url_for('static', filename='kbclinic.png') }}" height="200" width="auto" alt="KB Clinic">
+    </div>
+</body>
+{% include 'footer.html' %}
+</html>
