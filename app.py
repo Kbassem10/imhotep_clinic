@@ -88,6 +88,7 @@ def sign_in_admin():
         username = (request.form.get("username").strip()).lower()
         password = encrypt()
 
+
         login = db.execute("SELECT * FROM doctors WHERE LOWER(username) = ? AND password = ?", username , password)
         login_a = db.execute("SELECT * FROM assistants WHERE LOWER(username) = ? AND password = ?", username , password)
         #to fetch data from the database 
@@ -337,7 +338,7 @@ def change_pass_check():
     if not session.get("logged_in"):
         return redirect("/login")
     else:
-            password = request.form.get("password")
+            password = encrypt()
             doc_id = session.get("doc_id")
             password_check = db.execute("SELECT password from doctors WHERE doc_id = ?", doc_id)
             if password_check and password == password_check[0]["password"]:
@@ -346,18 +347,17 @@ def change_pass_check():
                 error = "Incorrect Password"
                 return render_template("password_check.html", error=error)
 
-
 #a route that change the password of the doctor to a new one
 @app.route("/change_password", methods=["POST"])
 def change_password():
     if not session.get("logged_in"):
         return redirect("/login")
     else:
-        password = request.form.get("password")
+        password = encrypt()
         doc_id = session.get("doc_id")
         db.execute("UPDATE doctors SET password = ? WHERE doc_id = ?", password , doc_id)
         return redirect("/doctor_details")
-
+    
 #a route that redirect to an edit doctor page
 @app.route("/edit_doctor", methods=["POST"])
 def edit_doctor():
@@ -832,7 +832,7 @@ app.config["MAX_CONTENT_LENGTH"] = 3 * 1024 * 1024
 #the path that the user will save the photo that will be uploaded
 app.config["UPLOAD_FOLDER_PHOTO"] = "//home//kbclinic//static//doc"
 
-app.config["UPLOAD_FOLDER_PHOTO"] = "//home//kbclinic//static//doc_logo"
+app.config["UPLOAD_FOLDER_LOGO"] = "//home//kbclinic//static//doc_logo"
 
 #a list with all of the file extentions that are allowed to be uploaded for more secuirity
 ALLOWED_EXTENSIONS = ("png", "jpg", "jpeg")
