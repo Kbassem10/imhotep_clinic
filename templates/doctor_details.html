@@ -41,6 +41,18 @@
 
 
   <br><br>
+  <form action="/change_shape" method="post">
+    <select name="shape" id="shape_select" style="width: 150px; padding: 5px; border-radius: 1rem;">
+      <option value="" disabled>Categories</option>  <option value="all">Show All</option>
+      <option value="notes">Notes</option>
+      <option value="notes_pres">Notes And Prescrip</option>
+    </select>
+    <button type="submit" class="btn-blue">Submit</button>
+  </form>
+  
+
+
+  <br><br>
   <p><strong>Name: </strong> {{ doctor[0].doc_name }}</p>
   <p><strong>Username: </strong> {{ doctor[0].username }}</p>
   <p><strong>Category: </strong> {{ doctor[0].category }}</p>
@@ -136,5 +148,17 @@
   </table>
 </body>
 {% include 'footer_doctor.html' %}
+<script>
+  // JavaScript to set the previously selected option
+  const selectedOption = localStorage.getItem("selectedShape");
+  if (selectedOption) {
+    document.getElementById("shape_select").value = selectedOption;
+  }
 
+  // JavaScript to store the selected option on change
+  const shapeSelect = document.getElementById("shape_select");
+  shapeSelect.addEventListener("change", function() {
+    localStorage.setItem("selectedShape", this.value);
+  });
+</script>
 </html>

@@ -29,6 +29,8 @@
                 </label>
             </div>
         </div>
+
+        {% if shape == "all" %}
         <div class="mydict">
             <div>
                 {% for patient_cat in patient_cat%}
@@ -39,6 +41,10 @@
                 {% endfor %}
             </div>
         </div>
+        {% elif shape == "notes" %}
+
+        {% endif %}
+
         <br><br>
         <button type="submit" class="btn-blue">Add</button>
     </form>

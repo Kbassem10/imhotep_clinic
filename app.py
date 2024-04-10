@@ -8,6 +8,7 @@ from cs50 import SQL
 from werkzeug.utils import secure_filename
 #to have the options to manage file from the app
 import os
+
 import shutil
 from datetime import datetime, timedelta
 
@@ -56,12 +57,12 @@ def prescription():
         doctor = db.execute("SELECT * FROM doctors WHERE doc_id = ?", doc_id)
         return detail, doctor
 
+
 def show_doctor_details():
         doc_id = session.get("doc_id")
         doctor = db.execute("SELECT * FROM doctors WHERE doc_id = ?", doc_id)
         prices = db.execute("SELECT * FROM price_cat WHERE doc_id = ?", doc_id)
         appoint_times = db.execute("SELECT * FROM appoint_time WHERE doc_id = ?", doc_id)
-        print(appoint_times)
         return doctor, prices, appoint_times
 
 def encrypt():
@@ -72,8 +73,21 @@ def encrypt():
         char=chr(assci_char)
         new_pass.append(char)
     encrypted_password = "".join(new_pass)
-    return encrypted_password
-
+    return encrypted_password\
+    
+def shape_check():
+    if not session.get("logged_in"):
+        return redirect("/login")
+    else:
+        doc_id = session.get("doc_id")
+        shape = db.execute("SELECT shape FROM doctors WHERE doc_id = ?", doc_id)
+        print(shape)
+        if len(shape) > 0:
+            shape = shape[0]["shape"]
+            return shape
+        else:
+            return 0
+    
 #the home page route
 @app.route("/")
 def choose():
@@ -222,7 +236,8 @@ def add_p_redirect():
     else:
         doc_id = session.get("doc_id")
         patient_cat = db.execute("SELECT * FROM patient_cat WHERE doc_id = ?", doc_id)
-        return render_template("add_new.html", patient_cat=patient_cat)
+        shape = shape_check()
+        return render_template("add_new.html", patient_cat=patient_cat, shape = shape)
     
 #a route that shows all of the patients that are saved with this doc_id of the doctor signed-in
 @app.route("/show_all",methods=["GET"] )
@@ -232,7 +247,8 @@ def show_all():
     else:
         doc_id = session.get("doc_id")
         patients = db.execute("SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) - (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age FROM patients WHERE doc_id = ? ORDER BY name COLLATE NOCASE", doc_id)
-        return render_template("show_all.html", patients=patients)
+        shape = shape_check()
+        return render_template("show_all.html", patients=patients, shape = shape)
     
 #a route to search in the database fo a person with a name like the name written on the database with the doc_id of the doctor signed_in and not case sensitive
 @app.route("/search_name", methods=["GET"])
@@ -262,6 +278,7 @@ def search_id():
         else:
             return render_template("search.html", patients=[])
 
+
 #a route to show all of the doctor details to the doctor him self
 @app.route("/doctor_details", methods=["GET","POST"])
 def doctor_details():
@@ -270,7 +287,18 @@ def doctor_details():
     else:
         doctor, prices, appoint_times = show_doctor_details()
         return render_template("doctor_details.html", doctor = doctor, prices=prices, appoint_times=appoint_times)
-    
+
+@app.route("/change_shape", methods=["POST"])
+def change_shape():
+    if not session.get("logged_in"):
+        return redirect("/login")
+    else:
+        doc_id = session.get("doc_id")
+        shape = request.form.get("shape")
+        db.execute("UPDATE doctors SET shape = ? WHERE doc_id = ?", shape, doc_id)
+        doctor, prices, appoint_times = show_doctor_details()
+        return render_template("doctor_details.html", doctor = doctor, prices=prices, appoint_times=appoint_times)
+
 @app.route("/add_appoint_times_redirect", methods=["GET"])
 def add_appoint_times_redirect():
     if not session.get("logged_in"):
@@ -465,7 +493,8 @@ def open_patient():
     else:
         #calling the fuction on the top of the code that select all of the patient data that are saved
         person , details , trans = select_patient()
-        return render_template("open_patient.html", person = person, details = details, trans = trans)
+        shape = shape_check()
+        return render_template("open_patient.html", person = person, details = details, trans = trans, shape = shape)
 
     #a route that make the admin can edit and modify the doctor prices
 @app.route("/edit_prices_doc", methods=["POST"])
@@ -649,7 +678,8 @@ def add_page_redirect():
     else:
         #calling the function of adding a patient details
         prices_cat, person, detail, appoint = add_patient_details()
-        return render_template("add_details.html", person=person, detail=detail, prices_cat=prices_cat, appoint=appoint)
+        shape = shape_check()
+        return render_template("add_details.html", person=person, detail=detail, prices_cat=prices_cat, appoint=appoint, shape = shape)
     
 #a route that adds a new record to the database with the date and the remarks and the details of the patient and save it to the database and show them on the open_patient route"metiened before"   
 @app.route("/add_details", methods=["POST"])

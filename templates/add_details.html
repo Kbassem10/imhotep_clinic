@@ -27,16 +27,16 @@
         <input autocomplete="off" autofocus name="remarks" placeholder="Remarks" type="text" class="input">&nbsp&nbsp
         <br><br>
 
+
         {% if appoint %}
             <input name ="price_category" type="hidden" value="{{ appoint[0].category }}">
             <input name ="date" type="hidden" value="{{ appoint[0].date }}">
         {% else %}
+        {% if shape == "all" %}
         <input autocomplete="off" autofocus name="date" placeholder="Date" type="date" class="input" required>
         <br><br>
         <table>
-            <td>
-                <p style="color: red;">If You Want To Save It As A Record Not Just A Note</p>
-                
+            <td>                
                 <input type="text" id="searchInput" placeholder="Search categories"
                     style="width: 150px; padding: 5px; border-radius: 1rem;">
             </td>
@@ -54,6 +54,9 @@
                 </table>
             </td>
         </table>
+        {% elif shape == "notes" %}
+        <input autocomplete="off" autofocus name="date" placeholder="Date" type="date" class="input" required>
+        {% endif %}
         {% endif %}
 
         <input name="id" type="hidden" value="{{ person[0].id }}">

@@ -54,12 +54,18 @@
         </td>
         <td>{{ person.phone_number }}</td>
         <td>{{ person.gender }}</td>
+
+        {% if shape == "all" %}
         <td>
           <form action="/add_appoint_date_doc_redirect" method="post">
             <input name="id" type="hidden" value="{{ person.id }}">
             <button type="submit" class="btn-orange" style="width: 100%;"><br>Add Appoint<br>‎</button>
           </form>
         </td>
+        {% elif shape == "notes" %}
+
+        {% endif %}
+
       {% endfor %}
     </tbody>
   </table>
