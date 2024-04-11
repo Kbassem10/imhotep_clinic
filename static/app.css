@@ -15,7 +15,12 @@ body {
 .centered {
     text-align: center;
     margin: auto;
-    display: block;
+    display: flex;
+    flex-direction: column;
+}
+
+.left-aligned {
+    align-self: flex-start;
 }
 
 .content-wrapper {
@@ -254,7 +259,7 @@ button.btn-black {
     padding: 9px 15px;
     border-radius: 5px;
     border: none;
-    background-color: 212529;
+    background-color: #212529;
     color: white;
     cursor: pointer;
 }

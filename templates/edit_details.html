@@ -9,7 +9,9 @@
 <body>
     {% include 'nav.html' %}
 
-    <br><br>
+    <br>
+    <br>
+    {% include 'back.html' %}
     <h1 class="centered animate__animated animate__pulse">Edit Details</h1>
 
     <form action="/update_details" method="POST" onsubmit="return confirm('ARE YOU SURE YOU WANT TO UPDATE THIS RECORD?');">

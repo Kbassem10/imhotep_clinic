@@ -12,6 +12,7 @@
     <div class="error-message">{{ error }}</div>
     {% endif %}
     <br><br>
+    {% include 'back.html' %}
     <h1 class="centered animate__animated animate__pulse">Add New Appointment</h1><br>
     <form action="/add_appoint_doc" method="post">
         <input name="id" type="hidden" value="{{person[0].id}}">

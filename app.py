@@ -81,7 +81,7 @@ def shape_check():
     else:
         doc_id = session.get("doc_id")
         shape = db.execute("SELECT shape FROM doctors WHERE doc_id = ?", doc_id)
-        print(shape)
+
         if len(shape) > 0:
             shape = shape[0]["shape"]
             return shape
@@ -297,7 +297,8 @@ def change_shape():
         shape = request.form.get("shape")
         db.execute("UPDATE doctors SET shape = ? WHERE doc_id = ?", shape, doc_id)
         doctor, prices, appoint_times = show_doctor_details()
-        return render_template("doctor_details.html", doctor = doctor, prices=prices, appoint_times=appoint_times)
+        notification = "Shape Changed Succesfully to "
+        return render_template("doctor_details.html", doctor = doctor, prices=prices, appoint_times=appoint_times, notification = notification)
 
 @app.route("/add_appoint_times_redirect", methods=["GET"])
 def add_appoint_times_redirect():
@@ -693,7 +694,6 @@ def add_details():
         date = request.form.get("date")
         remarks = request.form.get("remarks")
         price_category = request.form.get("price_category")
-        print(price_category)
 
         if price_category is None:    
             db.execute("INSERT INTO details (details,remarks, date, id, doc_id, category) VALUES (?, ?, ?, ?, ?, ?)", details,remarks, date, id, doc_id, price_category)
@@ -840,7 +840,7 @@ def add_prescription():
         return redirect("/login")
     else:
         d_id = request.form.get("d_id")
-        print(d_id)
+
         prescription = request.form.get("prescription")
         db.execute("UPDATE details SET prescription = ? WHERE d_id = ?", prescription, d_id)
         return redirect("/show_all")
