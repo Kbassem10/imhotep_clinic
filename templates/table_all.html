@@ -3,6 +3,10 @@
 
 <body class="centered">
   {% include 'nav.html' %}
+  
+  {% if notification %}
+  <div class="done-message">{{ notification }}</div>
+  {% endif %}
   <br>
 
   <table>

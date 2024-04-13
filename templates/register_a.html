@@ -22,9 +22,7 @@
     {% if error %}
     <div class="error-message">{{ error }}</div>
     {% endif %}
-    <div class="navbar">
-        <a href="/admin_home">Back</a>
-    </div>
+    {% include 'back.html' %}
     <br><br><br><br>
     <div class="login-box">
         <h1 class="centered animate__animated animate__pulse" style="color: white;">Register</h1>

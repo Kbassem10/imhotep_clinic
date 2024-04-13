@@ -1,21 +1,23 @@
 #THE WORK OF: KARIM BASSEM JOSEPH ID: 231000797
 
-#to use the python app as a website
 from flask import Flask, redirect, render_template, request, session
-#to use the easy sqlite3
+from flask_session import Session
 from cs50 import SQL
-#to secure 
 from werkzeug.utils import secure_filename
-#to have the options to manage file from the app
 import os
-
+from werkzeug.security import generate_password_hash, check_password_hash
 import shutil
 from datetime import datetime, timedelta
 
-#to start the app and force it to start as a flask app
+
 app = Flask(__name__)
-#the app secret key
-app.secret_key = "KB"
+
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = True
+app.config['SESSION_USE_SIGNER'] = True 
+app.config['SECRET_KEY'] = 'KB'
+
+Session(app)
 
 #mentien the database 
 db = SQL("sqlite:///kbclinic.db")
@@ -64,16 +66,6 @@ def show_doctor_details():
         prices = db.execute("SELECT * FROM price_cat WHERE doc_id = ?", doc_id)
         appoint_times = db.execute("SELECT * FROM appoint_time WHERE doc_id = ?", doc_id)
         return doctor, prices, appoint_times
-
-def encrypt():
-    password = request.form.get("password")
-    new_pass = []
-    for i in password:
-        assci_char = ord(i)-13
-        char=chr(assci_char)
-        new_pass.append(char)
-    encrypted_password = "".join(new_pass)
-    return encrypted_password\
     
 def shape_check():
     if not session.get("logged_in"):
@@ -92,7 +84,7 @@ def shape_check():
 @app.route("/")
 def choose():
     return render_template("choose.html")
-
+    
 #the login route that checks if the username "not case sensitive" and the password the are given from the template are the same as those on the databse
 #and also check if the user category of this person is doctor so it shows for him the doctors page and if he is an admin it shows to him the admin page
 @app.route("/login", methods=["GET","POST"])
@@ -100,36 +92,43 @@ def sign_in_admin():
     #check if the method is post "more secured than get"
     if request.method == "POST":
         username = (request.form.get("username").strip()).lower()
-        password = encrypt()
+        password = request.form.get("password")
+        remember_me = request.form.get("remember_me")
 
-
-        login = db.execute("SELECT * FROM doctors WHERE LOWER(username) = ? AND password = ?", username , password)
-        login_a = db.execute("SELECT * FROM assistants WHERE LOWER(username) = ? AND password = ?", username , password)
+        login = db.execute("SELECT * FROM doctors WHERE LOWER(username) = ?", username)
+        login_a = db.execute("SELECT * FROM assistants WHERE LOWER(username) = ?", username)
         #to fetch data from the database 
         if len(login) > 0:
             user_cat = login[0]["user_cat"]
+            password_db = login[0]["password"]
 
         if len(login_a) > 0:
             user_cat_a = login_a[0]["user_cat"]
+            password_db_a = login_a[0]["password"]
+
         #checks if the data are in the database make the session logged_in = true if not it shows an error
-        if login:
+        if login and check_password_hash(password_db, password):
+            if remember_me:
+                session.permanent = True  
+            else:
+                session.permanent = False 
             if user_cat == "doctor":
-                    doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ? AND password = ?", username, password)
+                    doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ? AND password = ?", username, password_db)
                     session.pop("logged_in_assistant", None)
                     session.pop("a_id", None)
                     session["logged_in"] = True
                     session["doc_id"] = doctor[0]["doc_id"]
                     return redirect("/home")
             elif user_cat == "admin":
-                    doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ? AND password = ?", username, password)
+                    doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ? AND password = ?", username, password_db)
                     session.pop("logged_in_assistant", None)
                     session.pop("a_id", None)
                     session["logged_in_admin"] = True
                     session["doc_id"] = doctor[0]["doc_id"]
                     return redirect("/admin_home")
-        elif login_a:
+        elif login_a and check_password_hash(login_a[0]["password"], password):
             if user_cat_a == "assistant":
-                doctor = db.execute("SELECT a_id FROM assistants WHERE LOWER(username) = ? AND password = ?", username, password)
+                doctor = db.execute("SELECT a_id FROM assistants WHERE LOWER(username) = ? AND password = ?", username, password_db_a)
                 session["logged_in_assistant"] = True
                 session["a_id"] = doctor[0]["a_id"]
                 return redirect("/assistant_home")
@@ -142,6 +141,7 @@ def sign_in_admin():
 #a logout function to go back to login and make the session logged_in = false
 @app.route("/logout", methods=["GET","POST"])
 def sign_out():
+    session.permanent = False
     if session.get("logged_in"):
         session["logged_in"] = False
         return redirect("/login")
@@ -224,9 +224,21 @@ def add_patient():
         patient_cat = request.form.get("patient_cat")
         doc_id = session.get("doc_id")
         db.execute("SELECT * FROM price_cat WHERE doc_id = ?", doc_id)
-        db.execute("INSERT INTO patients ( doc_id, name, phone_number, birthdate, gender, patient_cat) VALUES(?, ?, ?, ?, ?, ?)",
+        add = db.execute("INSERT INTO patients ( doc_id, name, phone_number, birthdate, gender, patient_cat) VALUES(?, ?, ?, ?, ?, ?)",
                     doc_id, name, phone_number, birthdate, gender ,patient_cat)
-        return redirect("/show_all")
+        id = db.execute("SELECT last_insert_rowid()")
+
+        if len(id) > 0:
+            id = id[0]["last_insert_rowid()"]
+            db.execute("DELETE FROM details WHERE id = ?", id)
+
+        if add:
+            patients , shape = show_patients_fun()
+            notification = "added successfully"
+            return render_template("show_all.html", patients=patients, shape = shape, notification = notification)
+        else:
+            return redirect ("/add_p_page")
+
     
 #a route that returns the add new patient page
 @app.route("/add_p_page")
@@ -238,16 +250,20 @@ def add_p_redirect():
         patient_cat = db.execute("SELECT * FROM patient_cat WHERE doc_id = ?", doc_id)
         shape = shape_check()
         return render_template("add_new.html", patient_cat=patient_cat, shape = shape)
-    
+
+def show_patients_fun():
+        doc_id = session.get("doc_id")
+        patients = db.execute("SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) - (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age FROM patients WHERE doc_id = ? ORDER BY name COLLATE NOCASE", doc_id)
+        shape = shape_check()
+        return patients, shape
+
 #a route that shows all of the patients that are saved with this doc_id of the doctor signed-in
 @app.route("/show_all",methods=["GET"] )
 def show_all():
     if not session.get("logged_in"):
         return redirect("/login")
     else:
-        doc_id = session.get("doc_id")
-        patients = db.execute("SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) - (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age FROM patients WHERE doc_id = ? ORDER BY name COLLATE NOCASE", doc_id)
-        shape = shape_check()
+        patients , shape = show_patients_fun()
         return render_template("show_all.html", patients=patients, shape = shape)
     
 #a route to search in the database fo a person with a name like the name written on the database with the doc_id of the doctor signed_in and not case sensitive
@@ -277,8 +293,7 @@ def search_id():
             return render_template("search.html", patients=person)
         else:
             return render_template("search.html", patients=[])
-
-
+        
 #a route to show all of the doctor details to the doctor him self
 @app.route("/doctor_details", methods=["GET","POST"])
 def doctor_details():
@@ -367,10 +382,10 @@ def change_pass_check():
     if not session.get("logged_in"):
         return redirect("/login")
     else:
-            password = encrypt()
+            password = request.form.get("password")
             doc_id = session.get("doc_id")
             password_check = db.execute("SELECT password from doctors WHERE doc_id = ?", doc_id)
-            if password_check and password == password_check[0]["password"]:
+            if password_check and check_password_hash( password_check[0]["password"], password):
                 return render_template("change_password.html")
             else:
                 error = "Incorrect Password"
@@ -382,9 +397,11 @@ def change_password():
     if not session.get("logged_in"):
         return redirect("/login")
     else:
-        password = encrypt()
+        password = request.form.get("password")
+
+        new_password = generate_password_hash(password)
         doc_id = session.get("doc_id")
-        db.execute("UPDATE doctors SET password = ? WHERE doc_id = ?", password , doc_id)
+        db.execute("UPDATE doctors SET password = ? WHERE doc_id = ?", new_password , doc_id)
         return redirect("/doctor_details")
     
 #a route that redirect to an edit doctor page
@@ -1110,25 +1127,26 @@ def register():
         return redirect("/login")
     else:
         username = (request.form.get("username").strip()).lower()
-        password = encrypt()
+        password = request.form.get("password")
         category = request.form.get("category")
         doc_name = request.form.get("doc_name")
         doc_phone_number = request.form.get("doc_phone_number")
         user_cat = request.form.get("user_cat")
 
-    existing_user = db.execute("SELECT * FROM( SELECT username FROM doctors WHERE LOWER(username) = ? UNION ALL SELECT username FROM assistants WHERE LOWER(username) =?) AS combined_table", username, username)
+        new_password = generate_password_hash(password)
+        existing_user = db.execute("SELECT * FROM( SELECT username FROM doctors WHERE LOWER(username) = ? UNION ALL SELECT username FROM assistants WHERE LOWER(username) =?) AS combined_table", username, username)
 
-    if existing_user and user_cat == "doctor":#an if condition to see if this username is saved by another user
-        error_existing = "Username is unavailable. Please choose another one."
-        return render_template("register_doctor.html", error=error_existing)
-    
-    elif existing_user and user_cat == "admin":#an if condition to see if this username is saved by another user
-        error_existing = "Username is unavailable. Please choose another one."
-        return render_template("register_admin.html", error=error_existing)
-    
-    else:
-        db.execute("INSERT INTO doctors (username, password, category, doc_name, doc_phone_number, user_cat) VALUES (?, ?, ? ,? , ?, ?)", username, password, category, doc_name, doc_phone_number, user_cat)
-        return redirect("/show_all_doctors")
+        if existing_user and user_cat == "doctor":#an if condition to see if this username is saved by another user
+            error_existing = "Username is unavailable. Please choose another one."
+            return render_template("register_doctor.html", error=error_existing)
+        
+        elif existing_user and user_cat == "admin":#an if condition to see if this username is saved by another user
+            error_existing = "Username is unavailable. Please choose another one."
+            return render_template("register_admin.html", error=error_existing)
+        
+        else:
+            db.execute("INSERT INTO doctors (username, password, category, doc_name, doc_phone_number, user_cat) VALUES (?, ?, ? ,? , ?, ?)", username, new_password, category, doc_name, doc_phone_number, user_cat)
+            return redirect("/show_all_doctors")
         
 @app.route("/show_all_doctors", methods=["GET"])#a route that shows all of the doctors on only one page
 def show_all_doctors():
@@ -1152,7 +1170,7 @@ def show_all_assi():
         return redirect("/login")
     else:
         query = """
-            SELECT doctors.doc_id , assistants.a_phonenumber, assistants.a_name, doctors.a_id
+            SELECT doctors.doc_id , assistants.a_phonenumber, assistants.a_name, doctors.a_id, assistants.username
             FROM assistants 
             INNER JOIN doctors ON doctors.a_id = assistants.a_id 
         """
@@ -1166,7 +1184,45 @@ def show_all_patients():
     else:
         patients = db.execute("SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) - (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age FROM patients ORDER BY name COLLATE NOCASE")
         return render_template("show_all_patients.html", patients=patients)
-    
+
+@app.route("/reset_password/<username>", methods=["GET", "POST"])
+def reset_password(username):
+    if not session.get("logged_in_admin"):
+        return redirect("/login")
+    else:
+        if request.method == "GET":
+            return render_template("reset_password.html", username=username)
+        elif request.method == "POST":
+            new_password = request.form.get("new_password")
+            hashed_password = generate_password_hash(new_password)
+
+            db.execute("UPDATE doctors SET password = ? WHERE username = ?", hashed_password, username)
+            notification = "Password Reset Successfully"
+            doctor = db.execute("SELECT * FROM doctors WHERE user_cat = ? ORDER BY doc_name COLLATE NOCASE", "doctor" )
+            return render_template("show_all_doctors.html", doctor=doctor, notification = notification)
+
+@app.route("/reset_password_a/<username>", methods=["GET", "POST"])
+def reset_password_a(username):
+    if not session.get("logged_in_admin"):
+        return redirect("/login")
+    else:
+        if request.method == "GET":
+            return render_template("reset_password_a.html", username=username)
+        elif request.method == "POST":
+            new_password = request.form.get("new_password")
+            hashed_password = generate_password_hash(new_password)
+
+            db.execute("UPDATE assistants SET password = ? WHERE username = ?", hashed_password, username)
+
+            notification = "Password Reset Successfully"
+            query = """
+                SELECT doctors.doc_id , assistants.a_phonenumber, assistants.a_name, doctors.a_id, assistants.username
+                FROM assistants 
+                INNER JOIN doctors ON doctors.a_id = assistants.a_id 
+            """
+            doctor = db.execute(query)
+            return render_template("show_all_assi.html", doctor=doctor, notification = notification)
+        
 @app.route("/doctor_show_details_admin", methods=["POST"])#a route that opens a page that have all of the doctors details except the password (for secuirity)
 def doctor_show_details_admin():
     if not session.get("logged_in_admin"):
@@ -1363,10 +1419,12 @@ def register_a():
         return render_template("login.html")
     else:
         username = (request.form.get("username").strip()).lower()
-        password = encrypt()
+        password = request.form.get("password")
         doc_name = request.form.get("doc_name")
         doc_phone_number = request.form.get("doc_phone_number")
         
+        new_password = generate_password_hash(password)
+
         existing_user = db.execute("SELECT * FROM( SELECT username FROM doctors WHERE LOWER(username) = ? UNION ALL SELECT username FROM assistants WHERE LOWER(username) =?) AS combined_table", username, username)
         if existing_user:#an if condition to see if this username is saved by another user
             error = "Username is unavailable. Please choose another one."
@@ -1374,9 +1432,9 @@ def register_a():
             return render_template("register_a.html", error=error, doc=doc)
         
         else:
-            db.execute("INSERT INTO assistants (username, password, a_name, a_phonenumber, user_cat) VALUES (?, ?, ? ,? ,?)", username, password, doc_name, doc_phone_number, "assistant")
+            db.execute("INSERT INTO assistants (username, password, a_name, a_phonenumber, user_cat) VALUES (?, ?, ? ,? ,?)", username, new_password, doc_name, doc_phone_number, "assistant")
 
-            a_id_querry = db.execute("SELECT a_id FROM assistants WHERE username = ? AND password = ?", username, password)
+            a_id_querry = db.execute("SELECT a_id FROM assistants WHERE username = ? AND password = ?", username, new_password)
         
             if len(a_id_querry) > 0:
                 a_id = a_id_querry[0]["a_id"]
