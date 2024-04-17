@@ -1302,15 +1302,29 @@ def filter_date():
 #a route to delete a patient from the database
 @app.route("/delete_patient", methods=["POST"])
 def delete_patient():
-    if not session.get("logged_in_admin"):
-        return redirect("/login")
-    else:
+    if session.get("logged_in_admin") :
         id = request.form.get("id")
         if id:
             db.execute("DELETE FROM details WHERE id = ?", id)
             db.execute("DELETE FROM transactions WHERE id = ?", id)
             db.execute("DELETE FROM patients WHERE id = ?", id)
-        return redirect("/show_all_patients")
+            notification = "Deleted Successfully"
+        patients = db.execute("SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) - (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age FROM patients ORDER BY name COLLATE NOCASE")
+        return render_template("show_all_patients.html", patients=patients, notification = notification)
+
+    
+    elif session.get("logged_in"):
+        id = request.form.get("id")
+        if id:
+            db.execute("DELETE FROM details WHERE id = ?", id)
+            db.execute("DELETE FROM transactions WHERE id = ?", id)
+            db.execute("DELETE FROM patients WHERE id = ?", id)
+            notification_d = "Deleted Successfully"
+        patients , shape = show_patients_fun()
+        return render_template("show_all.html", patients=patients, shape = shape, notification_d = notification_d)
+    else :
+        return redirect("/login")
+
 
 #a route to delete a doctor from the database and delete all of his data
 @app.route("/delete_doctor", methods=["POST"])

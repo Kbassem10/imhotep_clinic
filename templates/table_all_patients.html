@@ -5,7 +5,9 @@
 <body class="centered">
   {% include 'nav_admin.html' %}
   <br>
-
+  {% if notification %}
+  <div class="done-message">{{ notification }}</div>
+  {% endif %}
   <table class="c">
     <thead>
       <tr>
