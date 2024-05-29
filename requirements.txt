@@ -13,6 +13,7 @@ Flask==3.0.3
 Flask-Session==0.8.0
 greenlet==3.0.3
 gyp==0.1
+gunicorn==20.1.0
 httplib2==0.20.2
 importlib-metadata==4.6.4
 itsdangerous==2.2.0
