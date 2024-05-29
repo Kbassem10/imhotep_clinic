@@ -1,0 +1,5 @@
+-- database: /home/kbassem10/code/kbclinic/kbclinic copy.db
+
+-- Use the ▷ button in the top right corner to run the entire file.
+
+DELETE FROM transactions;
