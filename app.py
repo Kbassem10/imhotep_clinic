@@ -8,13 +8,16 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 import shutil
 from datetime import datetime, timedelta
+import redis
 
 
 app = Flask(__name__)
 
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_PERMANENT'] = True
-app.config['SESSION_USE_SIGNER'] = True 
+app.config['SESSION_TYPE'] = 'redis'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_KEY_PREFIX'] = 'session:'
+app.config['SESSION_REDIS'] = redis.from_url('redis://default:<password>@redis-17402.c55.eu-central-1-1.ec2.redns.redis-cloud.com:17402')
 app.config['SECRET_KEY'] = 'KB'
 
 Session(app)
@@ -86,10 +89,8 @@ def choose():
     return render_template("choose.html")
     
 #the login route that checks if the username "not case sensitive" and the password the are given from the template are the same as those on the databse
-#and also check if the user category of this person is doctor so it shows for him the doctors page and if he is an admin it shows to him the admin page
-@app.route("/login", methods=["GET","POST"])
+#and also check if the user category of this person is doctor so it shows for him the doctors page and if he is an admin it shows to him the admin page@app.route("/login", methods=["GET", "POST"])
 def sign_in_admin():
-    #check if the method is post "more secured than get"
     if request.method == "POST":
         username = (request.form.get("username").strip()).lower()
         password = request.form.get("password")
@@ -97,46 +98,46 @@ def sign_in_admin():
 
         login = db.execute("SELECT * FROM doctors WHERE LOWER(username) = ?", username)
         login_a = db.execute("SELECT * FROM assistants WHERE LOWER(username) = ?", username)
-        #to fetch data from the database 
+
+        # Check for doctors
         if len(login) > 0:
             user_cat = login[0]["user_cat"]
             password_db = login[0]["password"]
 
-        if len(login_a) > 0:
-            user_cat_a = login_a[0]["user_cat"]
-            password_db_a = login_a[0]["password"]
-
-        #checks if the data are in the database make the session logged_in = true if not it shows an error
-        if login and check_password_hash(password_db, password):
-            if remember_me:
-                session.permanent = True  
-            else:
-                session.permanent = False 
-            if user_cat == "doctor":
-                    doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ? AND password = ?", username, password_db)
+            if check_password_hash(password_db, password):
+                session.permanent = bool(remember_me)
+                if user_cat == "doctor":
+                    doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ?", username)
                     session.pop("logged_in_assistant", None)
                     session.pop("a_id", None)
                     session["logged_in"] = True
                     session["doc_id"] = doctor[0]["doc_id"]
                     return redirect("/home")
-            elif user_cat == "admin":
-                    doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ? AND password = ?", username, password_db)
+                elif user_cat == "admin":
+                    doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ?", username)
                     session.pop("logged_in_assistant", None)
                     session.pop("a_id", None)
                     session["logged_in_admin"] = True
                     session["doc_id"] = doctor[0]["doc_id"]
                     return redirect("/admin_home")
-        elif login_a and check_password_hash(login_a[0]["password"], password):
-            if user_cat_a == "assistant":
-                doctor = db.execute("SELECT a_id FROM assistants WHERE LOWER(username) = ? AND password = ?", username, password_db_a)
-                session["logged_in_assistant"] = True
-                session["a_id"] = doctor[0]["a_id"]
-                return redirect("/assistant_home")
-        else:    
-                error = "Invalid username or password"
-                return render_template("login.html", error=error)
+
+        # Check for assistants
+        if len(login_a) > 0:
+            user_cat_a = login_a[0]["user_cat"]
+            password_db_a = login_a[0]["password"]
+
+            if check_password_hash(password_db_a, password):
+                if user_cat_a == "assistant":
+                    assistant = db.execute("SELECT a_id FROM assistants WHERE LOWER(username) = ?", username)
+                    session["logged_in_assistant"] = True
+                    session["a_id"] = assistant[0]["a_id"]
+                    return redirect("/assistant_home")
+
+        error = "Invalid username or password"
+        return render_template("login.html", error=error)
     else:
-          return render_template("login.html")
+        return render_template("login.html")
+
 
 #a logout function to go back to login and make the session logged_in = false
 @app.route("/logout", methods=["GET","POST"])
