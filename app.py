@@ -24,7 +24,7 @@ app.config['SECRET_KEY'] = 'KB'
 Session(app)
 
 #mentien the database 
-db = SQL("sqlite:///kbclinic.db")
+db = SQL("sqlite:///kbclinictest.db")
 
 #a function to select all of the data from the patients and details and transactions table where the id is like given from the html
 #and also calculate the age of a person from the date of today - his birthdate
