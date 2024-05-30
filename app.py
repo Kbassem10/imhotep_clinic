@@ -90,6 +90,7 @@ def choose():
     
 #the login route that checks if the username "not case sensitive" and the password the are given from the template are the same as those on the databse
 #and also check if the user category of this person is doctor so it shows for him the doctors page and if he is an admin it shows to him the admin page@app.route("/login", methods=["GET", "POST"])
+@app.route("/login", methods=["GET","POST"])
 def sign_in_admin():
     if request.method == "POST":
         username = (request.form.get("username").strip()).lower()
