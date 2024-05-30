@@ -1,6 +1,6 @@
 #THE WORK OF: KARIM BASSEM JOSEPH ID: 231000797
 
-from flask import Flask, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session, make_response
 from flask_session import Session
 from cs50 import SQL
 from werkzeug.utils import secure_filename
@@ -113,14 +113,39 @@ def sign_in_admin():
                     session.pop("a_id", None)
                     session["logged_in"] = True
                     session["doc_id"] = doctor[0]["doc_id"]
-                    return redirect("/home")
+                    response = make_response(render_template("loading.html"))
+
+                    # Remove the loading overlay using JavaScript
+                    response.headers["X-Script"] = """
+                        <script>
+                            window.onload = function() {
+                                var loadingOverlay = document.querySelector(".loading-overlay");
+                                loadingOverlay.parentNode.removeChild(loadingOverlay);
+                            };
+                        </script>
+                    """
+
+                    return response
+
                 elif user_cat == "admin":
                     doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ?", username)
                     session.pop("logged_in_assistant", None)
                     session.pop("a_id", None)
                     session["logged_in_admin"] = True
                     session["doc_id"] = doctor[0]["doc_id"]
-                    return redirect("/admin_home")
+                    response = make_response(render_template("loading.html"))
+
+                    # Remove the loading overlay using JavaScript
+                    response.headers["X-Script"] = """
+                        <script>
+                            window.onload = function() {
+                                var loadingOverlay = document.querySelector(".loading-overlay");
+                                loadingOverlay.parentNode.removeChild(loadingOverlay);
+                            };
+                        </script>
+                    """
+
+                    return response
 
         # Check for assistants
         if len(login_a) > 0:
@@ -132,7 +157,19 @@ def sign_in_admin():
                     assistant = db.execute("SELECT a_id FROM assistants WHERE LOWER(username) = ?", username)
                     session["logged_in_assistant"] = True
                     session["a_id"] = assistant[0]["a_id"]
-                    return redirect("/assistant_home")
+                    response = make_response(render_template("loading.html"))
+
+                    # Remove the loading overlay using JavaScript
+                    response.headers["X-Script"] = """
+                        <script>
+                            window.onload = function() {
+                                var loadingOverlay = document.querySelector(".loading-overlay");
+                                loadingOverlay.parentNode.removeChild(loadingOverlay);
+                            };
+                        </script>
+                    """
+
+                    return response
 
         error = "Invalid username or password"
         return render_template("login.html", error=error)
