@@ -9,6 +9,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import shutil
 from datetime import datetime, timedelta
 import redis
+import sqlite3
 
 
 app = Flask(__name__)
@@ -1383,15 +1384,17 @@ def version_assi():
         return render_template("version_assi.html")
 
 def backup_database():
-    source_db_path = '//home//kbclinic//kbclinic.db'
-    backup_folder = '//home//kbclinic//db_Backup'
+    source_db_path = os.getenv("DATABASE_URL")
+    backup_folder = 'psql "postgres://default:vcR2h7JCQjEH@ep-quiet-glitter-a2kzrnd0.eu-central-1.aws.neon.tech:5432/verceldb?sslmode=require"'
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     backup_filename = f"backup_{current_time}.db"
     backup_db_path = backup_folder + backup_filename
 
     if not os.path.exists(backup_db_path):
         try:
-            shutil.copyfile(source_db_path, backup_db_path)
+            conn = sqlite3.connect(source_db_path)
+            conn.backup(backup_db_path)
+            conn.close()
             print(f"Database backup completed: {backup_filename}")
         except Exception as e:
             print(f"An error occurred during backup: {e}")
