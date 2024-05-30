@@ -17,7 +17,7 @@ app.config['SESSION_TYPE'] = 'redis'
 app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
 app.config['SESSION_KEY_PREFIX'] = 'session:'
-app.config['SESSION_REDIS'] = redis.from_url('redis://default:<password>@redis-17402.c55.eu-central-1-1.ec2.redns.redis-cloud.com:17402')
+app.config['SESSION_REDIS'] = redis.from_url('redis://default:LpqClqWSyiCxL3sLMZSTJJg1PeIAHtsc@redis-17402.c55.eu-central-1-1.ec2.redns.redis-cloud.com:17402')
 app.config['SECRET_KEY'] = 'KB'
 
 Session(app)
