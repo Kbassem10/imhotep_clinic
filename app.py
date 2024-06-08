@@ -1,6 +1,7 @@
 #THE WORK OF: KARIM BASSEM JOSEPH ID: 231000797
 
-from flask import Flask, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session, jsonify
+from flask_caching import Cache
 from flask_session import Session
 from cs50 import SQL
 from werkzeug.utils import secure_filename
@@ -8,22 +9,19 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 import shutil
 from datetime import datetime, timedelta
-import redis
-import sqlite3
-
 
 app = Flask(__name__)
 
-app.config['SESSION_TYPE'] = 'redis'
-app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_USE_SIGNER'] = True
-app.config['SESSION_KEY_PREFIX'] = 'session:'
-app.config['SESSION_REDIS'] = redis.from_url('redis://default:LpqClqWSyiCxL3sLMZSTJJg1PeIAHtsc@redis-17402.c55.eu-central-1-1.ec2.redns.redis-cloud.com:17402')
 app.config['SECRET_KEY'] = 'KB'
+app.config['CACHE_TYPE'] = 'simple'
+cache = Cache(app)
 
 Session(app)
 
-#mentien the database 
+#mentien the database
 db = SQL("sqlite:///kbclinic.db")
 
 #a function to select all of the data from the patients and details and transactions table where the id is like given from the html
@@ -35,7 +33,7 @@ def select_patient():
             id_query = db.execute("SELECT id FROM details WHERE d_id = ?", d_id)
             if len(id_query) > 0:
                 id = id_query[0]["id"]
-            
+
             doc_id = session.get("doc_id")
             person = db.execute("SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) - (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age FROM patients WHERE id = ? ", id)
             details = db.execute("SELECT * FROM details WHERE id = ?", id)
@@ -55,8 +53,8 @@ def prescription():
         doc_id = session.get("doc_id")
         query = """
             SELECT details.date, patients.name, details.remarks, details.prescription, patients.id, details.d_id
-            FROM details 
-            INNER JOIN patients ON details.id = patients.id 
+            FROM details
+            INNER JOIN patients ON details.id = patients.id
             WHERE details.d_id = ? AND patients.id = ?
         """
         detail = db.execute(query, d_id, id)
@@ -70,7 +68,7 @@ def show_doctor_details():
         prices = db.execute("SELECT * FROM price_cat WHERE doc_id = ?", doc_id)
         appoint_times = db.execute("SELECT * FROM appoint_time WHERE doc_id = ?", doc_id)
         return doctor, prices, appoint_times
-    
+
 def shape_check():
     if not session.get("logged_in"):
         return redirect("/login")
@@ -83,16 +81,17 @@ def shape_check():
             return shape
         else:
             return 0
-    
+
 #the home page route
 @app.route("/")
 def choose():
     return render_template("choose.html")
-    
+
 #the login route that checks if the username "not case sensitive" and the password the are given from the template are the same as those on the databse
-#and also check if the user category of this person is doctor so it shows for him the doctors page and if he is an admin it shows to him the admin page@app.route("/login", methods=["GET", "POST"])
+#and also check if the user category of this person is doctor so it shows for him the doctors page and if he is an admin it shows to him the admin page
 @app.route("/login", methods=["GET","POST"])
 def sign_in_admin():
+    #check if the method is post "more secured than get"
     if request.method == "POST":
         username = (request.form.get("username").strip()).lower()
         password = request.form.get("password")
@@ -100,46 +99,46 @@ def sign_in_admin():
 
         login = db.execute("SELECT * FROM doctors WHERE LOWER(username) = ?", username)
         login_a = db.execute("SELECT * FROM assistants WHERE LOWER(username) = ?", username)
-
-        # Check for doctors
+        #to fetch data from the database
         if len(login) > 0:
             user_cat = login[0]["user_cat"]
             password_db = login[0]["password"]
 
-            if check_password_hash(password_db, password):
-                session.permanent = bool(remember_me)
-                if user_cat == "doctor":
-                    doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ?", username)
+        if len(login_a) > 0:
+            user_cat_a = login_a[0]["user_cat"]
+            password_db_a = login_a[0]["password"]
+
+        #checks if the data are in the database make the session logged_in = true if not it shows an error
+        if login and check_password_hash(password_db, password):
+            if remember_me:
+                session.permanent = True
+            else:
+                session.permanent = False
+            if user_cat == "doctor":
+                    doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ? AND password = ?", username, password_db)
                     session.pop("logged_in_assistant", None)
                     session.pop("a_id", None)
                     session["logged_in"] = True
                     session["doc_id"] = doctor[0]["doc_id"]
                     return redirect("/home")
-                elif user_cat == "admin":
-                    doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ?", username)
+            elif user_cat == "admin":
+                    doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ? AND password = ?", username, password_db)
                     session.pop("logged_in_assistant", None)
                     session.pop("a_id", None)
                     session["logged_in_admin"] = True
                     session["doc_id"] = doctor[0]["doc_id"]
                     return redirect("/admin_home")
-
-        # Check for assistants
-        if len(login_a) > 0:
-            user_cat_a = login_a[0]["user_cat"]
-            password_db_a = login_a[0]["password"]
-
-            if check_password_hash(password_db_a, password):
-                if user_cat_a == "assistant":
-                    assistant = db.execute("SELECT a_id FROM assistants WHERE LOWER(username) = ?", username)
-                    session["logged_in_assistant"] = True
-                    session["a_id"] = assistant[0]["a_id"]
-                    return redirect("/assistant_home")
-
-        error = "Invalid username or password"
-        return render_template("login.html", error=error)
+        elif login_a and check_password_hash(login_a[0]["password"], password):
+            if user_cat_a == "assistant":
+                doctor = db.execute("SELECT a_id FROM assistants WHERE LOWER(username) = ? AND password = ?", username, password_db_a)
+                session["logged_in_assistant"] = True
+                session["a_id"] = doctor[0]["a_id"]
+                return redirect("/assistant_home")
+        else:
+                error = "Invalid username or password"
+                return render_template("login.html", error=error)
     else:
-        return render_template("login.html")
-
+          return render_template("login.html")
 
 #a logout function to go back to login and make the session logged_in = false
 @app.route("/logout", methods=["GET","POST"])
@@ -171,7 +170,8 @@ def filter_doctor_cat():
             doctor = db.execute("SELECT * FROM doctors WHERE category = ? ORDER BY doc_name", category)
             return render_template("search_doctor.html", doctor=doctor)
         else:
-            return render_template("search_doctor.html", doctor=[])
+            doctor = []
+            return render_template("search_doctor.html", doctor=doctor)
 
 #a route that shows all of the details of doctor that the patient have choose to see his details
 @app.route("/doctor_show_details", methods=["POST"])
@@ -181,6 +181,7 @@ def doctor_show_details():
     return render_template("doctor_show_details.html", doctor = doctor)
 
 @app.route("/home")
+@cache.cached(timeout=300)
 def home_page():
     if not session.get("logged_in"):
         return redirect("/login")
@@ -188,7 +189,7 @@ def home_page():
         current_date = datetime.now().strftime('%Y-%m-%d')
         date = datetime.now().date()
         doc_id = session.get("doc_id")
-        
+
         # Use SQL JOIN to fetch appointments with patient names
         appoint = db.execute("""
             SELECT appoint.*, patients.name AS patient_name
@@ -200,6 +201,7 @@ def home_page():
         return render_template("home.html", appoint=appoint, current_date=current_date)
 
 @app.route("/filter_date_home_doc", methods=["GET"])
+@cache.cached(timeout=300)
 def filter_date_home_doc():
     if not session.get("logged_in"):
         return redirect("/login")
@@ -242,7 +244,7 @@ def add_patient():
         else:
             return redirect ("/add_p_page")
 
-    
+
 #a route that returns the add new patient page
 @app.route("/add_p_page")
 def add_p_redirect():
@@ -262,15 +264,17 @@ def show_patients_fun():
 
 #a route that shows all of the patients that are saved with this doc_id of the doctor signed-in
 @app.route("/show_all",methods=["GET"] )
+@cache.cached(timeout=300)
 def show_all():
     if not session.get("logged_in"):
         return redirect("/login")
     else:
         patients , shape = show_patients_fun()
         return render_template("show_all.html", patients=patients, shape = shape)
-    
+
 #a route to search in the database fo a person with a name like the name written on the database with the doc_id of the doctor signed_in and not case sensitive
 @app.route("/search_name", methods=["GET"])
+@cache.cached(timeout=300)
 def search_name():
     if not session.get("logged_in"):
         return redirect("/login")
@@ -285,6 +289,7 @@ def search_name():
 
 #a route to search by id for a person on the database with the doc_id of the doctor signed-in
 @app.route("/search_id", methods=["GET"])
+@cache.cached(timeout=300)
 def search_id():
     if not session.get("logged_in"):
         return redirect("/login")
@@ -296,7 +301,7 @@ def search_id():
             return render_template("search.html", patients=person)
         else:
             return render_template("search.html", patients=[])
-        
+
 #a route to show all of the doctor details to the doctor him self
 @app.route("/doctor_details", methods=["GET","POST"])
 def doctor_details():
@@ -327,7 +332,7 @@ def add_appoint_times_redirect():
         doctor, prices, appoint_times = show_doctor_details()
         time = db.execute("SELECT * FROM appoint_time WHERE doc_id = ?", doc_id)
         return render_template("add_appoint_times.html", time = time, doctor= doctor, prices=prices, appoint_times=appoint_times)
-    
+
 @app.route("/add_appoint_times", methods=["POST"])
 def add_appoint_times():
     if not session.get("logged_in"):
@@ -344,7 +349,7 @@ def add_appoint_times():
         if not existing_time:
             db.execute("INSERT INTO appoint_time (doc_id, time1, time2, seperate_time, day) VALUES (?,?,?,?,?)", doc_id, time1, time2, seperate_time, day)
             return redirect("/add_appoint_times_redirect")
-        else: 
+        else:
             error = "This Day Is Assigned"
             doctor, prices, appoint_times = show_doctor_details()
             time = db.execute("SELECT * FROM appoint_time WHERE doc_id = ?", doc_id)
@@ -358,10 +363,10 @@ def add_d_details_redirect():
     else:
         doc_id = session.get("doc_id")
         doctor = db.execute("SELECT * FROM doctors WHERE doc_id = ?", doc_id)
-        return render_template("add_doctor_details.html", doctor= doctor)    
+        return render_template("add_doctor_details.html", doctor= doctor)
 
 #a route that the doctor adds his details
-@app.route("/add_d_details", methods=["POST"])              
+@app.route("/add_d_details", methods=["POST"])
 def add_d_details():
     if not session.get("logged_in"):
         return redirect("/login")
@@ -378,7 +383,7 @@ def change_pass_check_redirect():
         return redirect("/login")
     else:
         return render_template("password_check.html")
-    
+
 #a route that checks if the passwrd written on the template is the same as the password saved on the database
 @app.route("/change_password_check", methods=["POST"])
 def change_pass_check():
@@ -406,7 +411,7 @@ def change_password():
         doc_id = session.get("doc_id")
         db.execute("UPDATE doctors SET password = ? WHERE doc_id = ?", new_password , doc_id)
         return redirect("/doctor_details")
-    
+
 #a route that redirect to an edit doctor page
 @app.route("/edit_doctor", methods=["POST"])
 def edit_doctor():
@@ -416,7 +421,7 @@ def edit_doctor():
         doc_id = session.get("doc_id")
         doctor = db.execute("SELECT * FROM doctors WHERE doc_id = ?", doc_id)
         return render_template("edit_doctor.html", doctor=doctor)
-    
+
 #a route that edits the doctor information like his username, phone number, Name
 @app.route("/update_doctor", methods=["POST"])
 def update_doctor():
@@ -440,8 +445,8 @@ def update_doctor():
         else:
             db.execute("UPDATE doctors SET username = ?, category = ?, doc_name = ?, doc_phone_number = ? WHERE doc_id = ?", username, category,doc_name, doc_phone_number, doc_id)
             return redirect("/doctor_details")
-    
-#a route that redirect to a page that edits the patients saved information    
+
+#a route that redirect to a page that edits the patients saved information
 @app.route("/edit_appoint_times", methods=["POST"])
 def edit_appoint_time():
     if not session.get("logged_in"):
@@ -476,7 +481,7 @@ def update_appoint_times():
             doctor, prices, appoint_times = show_doctor_details()
             return render_template("doctor_details.html", doctor = doctor, prices=prices, appoint_times=appoint_times)
 
-#a route that redirect to a page that edits the patients saved information    
+#a route that redirect to a page that edits the patients saved information
 @app.route("/edit_patient", methods=["POST"])
 def edit_patient():
     if not session.get("logged_in"):
@@ -527,7 +532,7 @@ def edit_prices_doc():
         price_cat_id = request.form.get("price_cat_id")
         prices = db.execute("SELECT * FROM price_cat WHERE doc_id = ? AND price_cat_id = ?", doc_id, price_cat_id)
         return render_template("edit_prices_doc.html", prices=prices)
-    
+
     #a route the execute the route before that
 @app.route("/update_prices_doc", methods=["POST"])
 def edit_price_doc():
@@ -631,7 +636,7 @@ def edit_appoint_doc():
             date = datetime.now().date()
             appoint = db.execute("SELECT * FROM appoint WHERE doc_id = ? AND date = ?", doc_id, date)
             return render_template("home.html", appoint=appoint, current_date=current_date, error=error)
-    
+
 #a route that edits the doctor information like his username, phone number, Name
 @app.route("/update_appoint_doc", methods=["POST"])
 def update_appoint_doc():
@@ -657,7 +662,7 @@ def update_appoint_doc():
             doc_id = session.get("doc_id")
             appoint = db.execute("SELECT * FROM appoint WHERE doc_id = ? AND date = ?", doc_id, date)
             return render_template("home.html", appoint=appoint, current_date=current_date, error=error)
-        
+
 @app.route("/delete_appoint_doc", methods=["POST"])
 def delete_appoint_doc():
     if not session.get("logged_in"):
@@ -679,7 +684,7 @@ def delete_appoint_doc():
             doc_id = session.get("doc_id")
             appoint = db.execute("SELECT * FROM appoint WHERE doc_id = ? AND date = ?", doc_id, date)
             return render_template("home.html", appoint=appoint, current_date=current_date, error=error)
-        
+
 #a function to add a new patient details with his id and the doctor id that is signed-in
 def add_patient_details():
         id = request.form.get("id")
@@ -701,8 +706,8 @@ def add_page_redirect():
         prices_cat, person, detail, appoint = add_patient_details()
         shape = shape_check()
         return render_template("add_details.html", person=person, detail=detail, prices_cat=prices_cat, appoint=appoint, shape = shape)
-    
-#a route that adds a new record to the database with the date and the remarks and the details of the patient and save it to the database and show them on the open_patient route"metiened before"   
+
+#a route that adds a new record to the database with the date and the remarks and the details of the patient and save it to the database and show them on the open_patient route"metiened before"
 @app.route("/add_details", methods=["POST"])
 def add_details():
     if not session.get("logged_in"):
@@ -715,13 +720,13 @@ def add_details():
         remarks = request.form.get("remarks")
         price_category = request.form.get("price_category")
 
-        if price_category is None:    
+        if price_category is None:
             db.execute("INSERT INTO details (details,remarks, date, id, doc_id, category) VALUES (?, ?, ?, ?, ?, ?)", details,remarks, date, id, doc_id, price_category)
             person , details , trans= select_patient()
             return render_template("open_patient.html", person = person, details = details, trans=trans)
         else:
             patient_cat_select = db.execute("SELECT patient_cat FROM patients WHERE id = ?", id)
-            #this if condtion makes sure that the user haven't choosen a wrong thing that have no patient_category on it and if not it shows an error 
+            #this if condtion makes sure that the user haven't choosen a wrong thing that have no patient_category on it and if not it shows an error
             if len(patient_cat_select) > 0:
                 #to fetch that data from the data base and make it as a string not a list
                 patient_cat = patient_cat_select[0]["patient_cat"]
@@ -777,7 +782,7 @@ def edit_details():
         detail = db.execute("SELECT * FROM details WHERE d_id = ?", d_id)
         person = select_patient()
         return render_template("edit_details.html", detail=detail, person = person)
-    
+
 #a route that updates the details saved in the database for this day
 @app.route("/update_details", methods=["POST"])
 def update_details():
@@ -817,17 +822,17 @@ def filter_age():
         age2_1 = age2 + 1
         doc_id = session.get("doc_id")
         query = """
-            SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) - 
-            (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age 
-            FROM patients 
-            WHERE doc_id = ? AND 
-            date('now') >= date(birthdate, '+' || ? || ' years') AND 
+            SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) -
+            (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age
+            FROM patients
+            WHERE doc_id = ? AND
+            date('now') >= date(birthdate, '+' || ? || ' years') AND
             date('now') <= date(birthdate, '+' || ? || ' years')
             ORDER BY name
         """
         person = db.execute(query, doc_id, age1, age2_1)
         return render_template("search.html", patients=person)
-    
+
 #a route to show the patient details that are saved on a biggger sacale that the table and show more info
 @app.route("/open_patient_details", methods=["POST"])
 def open_patient_details():
@@ -888,7 +893,7 @@ app.config["UPLOAD_FOLDER_LOGO"] = "//home//kbclinic//static//doc_logo"
 ALLOWED_EXTENSIONS = ("png", "jpg", "jpeg")
 
 #a function that split the filename of the photo uploaded by the user after the . and selects the elememt with index [1]
-#and sees if he is in the list of the ALLOWED _EXTENTIONS it will workd if not will return false  
+#and sees if he is in the list of the ALLOWED _EXTENTIONS it will workd if not will return false
 def allowed_file(filename):
     if "." in filename:
         filename_check = filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -920,7 +925,7 @@ def upload_file():
             doc_id = session.get("doc_id")
             file = request.files['file']
             if file and allowed_file(file.filename): #ensure if the file has the same extention that are accepted
-                filename = secure_filename(file.filename)  
+                filename = secure_filename(file.filename)
                 file_extention = file_ext(filename) #recall to the function that is defined up
 
                 photo_name = f"{doc_id}.{file_extention}" #renaming the file with an f string with the doc_id and the file extention
@@ -932,7 +937,7 @@ def upload_file():
                 doctor, prices,appoint_times = show_doctor_details()
                 return render_template("doctor_details.html", doctor=doctor, prices=prices, appoint_times=appoint_times)
             else:
-                error = "Invalid file format. Allowed formats are: png, jpg, jpeg" #if the extention isn't from allowed shows this error 
+                error = "Invalid file format. Allowed formats are: png, jpg, jpeg" #if the extention isn't from allowed shows this error
                 return render_template("upload.html", error=error)
         else:
             error = "file upload failed"
@@ -954,7 +959,7 @@ def upload_logo():
             doc_id = session.get("doc_id")
             file = request.files['file']
             if file and allowed_file(file.filename): #ensure if the file has the same extention that are accepted
-                filename = secure_filename(file.filename)  
+                filename = secure_filename(file.filename)
                 file_extention = file_ext(filename) #recall to the function that is defined up
 
                 photo_name = f"{doc_id}.{file_extention}" #renaming the file with an f string with the doc_id and the file extention
@@ -966,7 +971,7 @@ def upload_logo():
                 doctor, prices,appoint_times = show_doctor_details()
                 return render_template("doctor_details.html", doctor=doctor, prices=prices,appoint_times=appoint_times)
             else:
-                error = "Invalid file format. Allowed formats are: png, jpg, jpeg" #if the extention isn't from allowed shows this error 
+                error = "Invalid file format. Allowed formats are: png, jpg, jpeg" #if the extention isn't from allowed shows this error
                 return render_template("upload.html", error=error)
         else:
             error = "file upload failed"
@@ -984,7 +989,7 @@ def image_delete():
             file_extension = file_ext(photo_name) #to get the extention of the file with the recall of the function mentiend before
 
             photo_name = f"{doc_id}.{file_extension}" #using f string to rename the filename again
-            photo_path = os.path.join(app.config['UPLOAD_FOLDER_PHOTO'], photo_name) #to get the photo path to delete it 
+            photo_path = os.path.join(app.config['UPLOAD_FOLDER_PHOTO'], photo_name) #to get the photo path to delete it
 
             if os.path.exists(photo_path): #ensure that this path have a file
                 os.remove(photo_path) #delete the file using the os library
@@ -996,7 +1001,7 @@ def image_delete():
         else:
             error = "No image associated with this doctor to delete." #if this docotr don't have an image
             return render_template("error.html", error=error)
-                
+
 #a route to delete a saved photo to a doctor from the files and from the database
 @app.route("/delete_image", methods=["POST"])
 def delete_image():
@@ -1021,7 +1026,7 @@ def delete_logo():
                 file_extension = file_ext(photo_name) #to get the extention of the file with the recall of the function mentiend before
 
                 photo_name = f"{doc_id}.{file_extension}" #using f string to rename the filename again
-                logo_path = os.path.join(app.config['UPLOAD_FOLDER_LOGO'], photo_name) #to get the photo path to delete it 
+                logo_path = os.path.join(app.config['UPLOAD_FOLDER_LOGO'], photo_name) #to get the photo path to delete it
 
                 if os.path.exists(logo_path): #ensure that this path have a file
                     os.remove(logo_path) #delete the file using the os library
@@ -1034,7 +1039,7 @@ def delete_logo():
                 error = "No image associated with this doctor to delete." #if this docotr don't have an image
                 return render_template("error.html", error=error)
         return redirect("/doctor_details")
-            
+
 
 #redirect to a page that the doctor could add his prices for every patient category and for every price_cat
 @app.route("/price_cat_redirect", methods=["GET"])
@@ -1077,7 +1082,7 @@ def price_cat():
             error = "This Price Category and Patient Category combination is already assigned."
             doctor, prices, appoint_times = show_doctor_details()
             return render_template("price_cat.html", error=error, doctor=doctor, prices=prices, appoint_times=appoint_times)
-        
+
 @app.route("/trans_doc")
 def trans_doc():
     if not session.get("logged_in"):
@@ -1098,7 +1103,7 @@ def filter_date_doc():
         date2 = request.args.get("date2")
         query = """
             SELECT *
-            FROM transactions 
+            FROM transactions
             WHERE date BETWEEN ? AND ? AND doc_id = ?
             ORDER BY date
         """
@@ -1114,7 +1119,7 @@ def admin_home():
     else:
         datas = db.execute("SELECT * FROM transactions")#this page have all of the transactions done by the doctors and patients
         return render_template("admin_home.html", datas = datas)
-    
+
 #a route that returns a register page to the admin users
 @app.route("/register_redirect")
 def register_redirect():
@@ -1142,15 +1147,15 @@ def register():
         if existing_user and user_cat == "doctor":#an if condition to see if this username is saved by another user
             error_existing = "Username is unavailable. Please choose another one."
             return render_template("register_doctor.html", error=error_existing)
-        
+
         elif existing_user and user_cat == "admin":#an if condition to see if this username is saved by another user
             error_existing = "Username is unavailable. Please choose another one."
             return render_template("register_admin.html", error=error_existing)
-        
+
         else:
             db.execute("INSERT INTO doctors (username, password, category, doc_name, doc_phone_number, user_cat) VALUES (?, ?, ? ,? , ?, ?)", username, new_password, category, doc_name, doc_phone_number, user_cat)
             return redirect("/show_all_doctors")
-        
+
 @app.route("/show_all_doctors", methods=["GET"])#a route that shows all of the doctors on only one page
 def show_all_doctors():
     if not session.get("logged_in_admin"):
@@ -1174,12 +1179,12 @@ def show_all_assi():
     else:
         query = """
             SELECT doctors.doc_id , assistants.a_phonenumber, assistants.a_name, doctors.a_id, assistants.username
-            FROM assistants 
-            INNER JOIN doctors ON doctors.a_id = assistants.a_id 
+            FROM assistants
+            INNER JOIN doctors ON doctors.a_id = assistants.a_id
         """
         doctor = db.execute(query)
         return render_template("show_all_assi.html", doctor=doctor)
-    
+
 @app.route("/show_all_patients", methods=["GET"])#a route that shows all of the patients on only one page
 def show_all_patients():
     if not session.get("logged_in_admin"):
@@ -1220,12 +1225,12 @@ def reset_password_a(username):
             notification = "Password Reset Successfully"
             query = """
                 SELECT doctors.doc_id , assistants.a_phonenumber, assistants.a_name, doctors.a_id, assistants.username
-                FROM assistants 
-                INNER JOIN doctors ON doctors.a_id = assistants.a_id 
+                FROM assistants
+                INNER JOIN doctors ON doctors.a_id = assistants.a_id
             """
             doctor = db.execute(query)
             return render_template("show_all_assi.html", doctor=doctor, notification = notification)
-        
+
 @app.route("/doctor_show_details_admin", methods=["POST"])#a route that opens a page that have all of the doctors details except the password (for secuirity)
 def doctor_show_details_admin():
     if not session.get("logged_in_admin"):
@@ -1235,7 +1240,7 @@ def doctor_show_details_admin():
         prices = db.execute("SELECT * FROM price_cat WHERE doc_id = ?", doc_id)
         doctor = db.execute("SELECT * FROM doctors WHERE doc_id = ?", doc_id)
         return render_template("doctor_show_details_admin.html", doctor = doctor, prices=prices)
-    
+
     #a route that make the admin can edit and modify the doctor prices
 @app.route("/edit_prices", methods=["POST"])
 def edit_prices():
@@ -1246,7 +1251,7 @@ def edit_prices():
         price_cat_id = request.form.get("price_cat_id")
         prices = db.execute("SELECT * FROM price_cat WHERE doc_id = ? AND price_cat_id = ?", doc_id, price_cat_id)
         return render_template("edit_prices.html", prices=prices)
-    
+
     #a route the execute the route before that
 @app.route("/update_prices", methods=["POST"])
 def edit_price_0():
@@ -1258,7 +1263,7 @@ def edit_price_0():
         price_cat_id = request.form.get("price_cat_id")
         db.execute("UPDATE price_cat SET price = ? WHERE doc_id = ? AND price_cat_id = ?", price, doc_id, price_cat_id)
         return redirect("/show_all_doctors")
-    
+
     #a route that make a search by patient's id to show this specific patient
 @app.route("/search_patient_id", methods=["GET"])
 def search_patient_id():
@@ -1271,7 +1276,7 @@ def search_patient_id():
             return render_template("search_patient_admin.html", patients=person)
         else:
             return render_template("search_patient_admin.html", patients=[])
-        
+
         #a route that make a search by doctor's id to show this specific doctor
 @app.route("/search_doctor_id", methods=["GET"])
 def search_doctor_id():
@@ -1295,13 +1300,13 @@ def filter_date():
         date2 = request.args.get("date2")
         query = """
             SELECT *
-            FROM transactions 
-            WHERE date BETWEEN ? AND ? 
+            FROM transactions
+            WHERE date BETWEEN ? AND ?
             ORDER BY date
         """
         datas = db.execute(query, date1, date2)
         return render_template("search_transactions.html", datas=datas)
-    
+
 #a route to delete a patient from the database
 @app.route("/delete_patient", methods=["POST"])
 def delete_patient():
@@ -1315,7 +1320,7 @@ def delete_patient():
         patients = db.execute("SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) - (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age FROM patients ORDER BY name COLLATE NOCASE")
         return render_template("show_all_patients.html", patients=patients, notification = notification)
 
-    
+
     elif session.get("logged_in"):
         id = request.form.get("id")
         if id:
@@ -1336,7 +1341,7 @@ def delete_doctor():
         return redirect("/login")
     else:
         doc_id = request.form.get("doc_id")
-        if id: 
+        if id:
             photo_name = db.execute("SELECT * FROM doctors WHERE doc_id = ?", doc_id)
 
             if len(photo_name) > 0:
@@ -1345,19 +1350,19 @@ def delete_doctor():
                     file_extension = file_ext(photo_name) #to get the extention of the file with the recall of the function mentiend before
 
                     photo_name = f"{doc_id}.{file_extension}" #using f string to rename the filename again
-                    photo_path = os.path.join(app.config['UPLOAD_FOLDER_PHOTO'], photo_name) #to get the photo path to delete it 
+                    photo_path = os.path.join(app.config['UPLOAD_FOLDER_PHOTO'], photo_name) #to get the photo path to delete it
 
                     if os.path.exists(photo_path): #ensure that this path have a file
                         os.remove(photo_path) #delete the file using the os library
                         db.execute("UPDATE doctors SET photo_path = NULL WHERE doc_id = ?", doc_id) #a sqlite3 querry to set the photo_path in the database a null again
-            
+
             db.execute("DELETE FROM details WHERE doc_id = ?", doc_id)
             db.execute("DELETE FROM transactions WHERE doc_id = ?", doc_id)
             db.execute("DELETE FROM price_cat WHERE doc_id = ?", doc_id)
             db.execute("DELETE FROM patients WHERE doc_id = ?", doc_id)
             db.execute("DELETE FROM doctors WHERE doc_id = ?", doc_id)
             return redirect("/show_all_doctors")
-        
+
 @app.route("/version_admin", methods=["GET"])
 def version_admin():
     if not session.get("logged_in_admin"):
@@ -1384,17 +1389,15 @@ def version_assi():
         return render_template("version_assi.html")
 
 def backup_database():
-    source_db_path = os.getenv("DATABASE_URL")
-    backup_folder = 'psql "postgres://default:vcR2h7JCQjEH@ep-quiet-glitter-a2kzrnd0.eu-central-1.aws.neon.tech:5432/verceldb?sslmode=require"'
+    source_db_path = '//home//kbclinic//kbclinic.db'
+    backup_folder = '//home//kbclinic//db_Backup'
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     backup_filename = f"backup_{current_time}.db"
     backup_db_path = backup_folder + backup_filename
 
     if not os.path.exists(backup_db_path):
         try:
-            conn = sqlite3.connect(source_db_path)
-            conn.backup(backup_db_path)
-            conn.close()
+            shutil.copyfile(source_db_path, backup_db_path)
             print(f"Database backup completed: {backup_filename}")
         except Exception as e:
             print(f"An error occurred during backup: {e}")
@@ -1409,7 +1412,7 @@ def backup_run():
         backup_database()
         done = "Backed Up successfully"
         return render_template("admin_home.html", done=done)
-    
+
 @app.route("/register_doctor_redirect")
 def register_doctor_redirect():
     if not session.get("logged_in_admin"):
@@ -1422,7 +1425,7 @@ def register_admin_redirect():
     if not session.get("logged_in_admin"):
         return render_template("login.html")
     else:
-        return render_template("register_admin.html") 
+        return render_template("register_admin.html")
 
 @app.route("/register_a_redirect")
 def register_a_redirect():
@@ -1441,7 +1444,7 @@ def register_a():
         password = request.form.get("password")
         doc_name = request.form.get("doc_name")
         doc_phone_number = request.form.get("doc_phone_number")
-        
+
         new_password = generate_password_hash(password)
 
         existing_user = db.execute("SELECT * FROM( SELECT username FROM doctors WHERE LOWER(username) = ? UNION ALL SELECT username FROM assistants WHERE LOWER(username) =?) AS combined_table", username, username)
@@ -1449,12 +1452,12 @@ def register_a():
             error = "Username is unavailable. Please choose another one."
             doc = db.execute("SELECT * FROM doctors WHERE user_cat = ?", "doctor")
             return render_template("register_a.html", error=error, doc=doc)
-        
+
         else:
             db.execute("INSERT INTO assistants (username, password, a_name, a_phonenumber, user_cat) VALUES (?, ?, ? ,? ,?)", username, new_password, doc_name, doc_phone_number, "assistant")
 
             a_id_querry = db.execute("SELECT a_id FROM assistants WHERE username = ? AND password = ?", username, new_password)
-        
+
             if len(a_id_querry) > 0:
                 a_id = a_id_querry[0]["a_id"]
 
@@ -1518,7 +1521,7 @@ def add_new_a():
         doc_id = session.get("doc_id")
         patient_cat = db.execute("SELECT * FROM patient_cat WHERE doc_id = ?", doc_id)
         return render_template("add_new_a.html", patient_cat=patient_cat)
-  
+
 @app.route("/add_patient_a", methods=["POST"])
 def add_patient_a():
     if not session.get("logged_in_assistant"):
@@ -1534,7 +1537,7 @@ def add_patient_a():
         db.execute("INSERT INTO patients ( doc_id, name, phone_number, birthdate, gender, patient_cat) VALUES(?, ?, ?, ?, ?, ?)",
                     doc_id, name, phone_number, birthdate, gender ,patient_cat)
         return redirect("/show_all_patients_a")
-    
+
 @app.route("/filter_date_assi", methods=["GET"])
 def filter_date_assi():
     if not session.get("logged_in_assistant"):
@@ -1545,14 +1548,14 @@ def filter_date_assi():
         date2 = request.args.get("date2")
         query = """
             SELECT *
-            FROM transactions 
+            FROM transactions
             WHERE date BETWEEN ? AND ? AND doc_id = ?
             ORDER BY date
         """
         datas = db.execute(query, date1, date2, doc_id)
         sum = db.execute("SELECT SUM(price) FROM transactions WHERE doc_id = ? AND date BETWEEN ? AND ? ORDER BY date", doc_id, date1, date2)
         return render_template("search_transactions_assi.html", datas=datas, sum=sum)
-    
+
 #a route that filter the shown data on the show all page by gender to show "male" or "female"
 @app.route("/filter_gender_assi", methods=["GET"])
 def filetr_gender_assi():
@@ -1578,17 +1581,17 @@ def filter_age_assi():
         age2_1 = age2 + 1
         doc_id = assistant_id()
         query = """
-            SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) - 
-            (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age 
-            FROM patients 
-            WHERE doc_id = ? AND 
-            date('now') >= date(birthdate, '+' || ? || ' years') AND 
+            SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) -
+            (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age
+            FROM patients
+            WHERE doc_id = ? AND
+            date('now') >= date(birthdate, '+' || ? || ' years') AND
             date('now') <= date(birthdate, '+' || ? || ' years')
             ORDER BY name
         """
         person = db.execute(query, doc_id, age1, age2_1)
         return render_template("table_all_patients_a.html", patients=person)
-    
+
 #a route to search by id for a person on the database with the doc_id of the doctor signed-in
 @app.route("/search_id_assi", methods=["GET"])
 def search_id_assi():
@@ -1602,7 +1605,7 @@ def search_id_assi():
             return render_template("table_all_patients_a.html", patients=person)
         else:
             return render_template("table_all_patients_a.html", patients=[])
-        
+
 @app.route("/open_patient_assi", methods=["GET"])
 def open_patien_assi():
     if not session.get("logged_in_assistant"):
@@ -1612,7 +1615,7 @@ def open_patien_assi():
         person = db.execute("SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) - (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age FROM patients WHERE id = ? ", id)
         details = db.execute("SELECT * FROM details WHERE id = ?", id)
         return render_template("open_patient_assi.html", person = person, details=details)
-    
+
 #a route to search by id for a person on the database with the doc_id of the doctor signed-in
 @app.route("/search_phone_assi", methods=["GET"])
 def search_phone_assi():
@@ -1626,7 +1629,7 @@ def search_phone_assi():
             return render_template("table_all_patients_a.html", patients=person)
         else:
             return render_template("table_all_patients_a.html", patients=[])
-        
+
 @app.route("/add_appoint_date_assi_redirect", methods=["POST"])
 def add_appoint_date_assi_redirect():
     if not session.get("logged_in_assistant"):
@@ -1729,7 +1732,7 @@ def update_appoint_assi():
         category = request.form.get("category")
         status = request.form.get("status")
         db.execute("UPDATE appoint SET time = ? , category = ? , status = ? WHERE appoint_id = ?", time, category, status, appoint_id)
-        return redirect("/assistant_home") 
+        return redirect("/assistant_home")
 
 @app.route("/delete_appoint_assi", methods=["POST"])
 def delete_appoint_assi():
