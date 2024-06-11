@@ -1,7 +1,4 @@
-#THE WORK OF: KARIM BASSEM JOSEPH ID: 231000797
-
-from flask import Flask, redirect, render_template, request, session, jsonify
-from flask_caching import Cache
+from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 from cs50 import SQL
 from werkzeug.utils import secure_filename
@@ -9,15 +6,17 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 import shutil
 from datetime import datetime, timedelta
+import secrets
 
 app = Flask(__name__)
 
+secret_key = secrets.token_hex(16)
+
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_PERMANENT'] = True
+app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
-app.config['SECRET_KEY'] = 'KB'
-app.config['CACHE_TYPE'] = 'simple'
-cache = Cache(app)
+app.config['SECRET_KEY'] = secret_key
+app.config["SESSION_COOKIE_SECURE"] = True
 
 Session(app)
 
@@ -140,6 +139,18 @@ def sign_in_admin():
     else:
           return render_template("login.html")
 
+@app.route("/login_page", methods=["GET","POST"])
+def login_page():
+    if session.get("logged_in"):
+        return redirect("/home")
+    elif session.get("logged_in_admin"):
+        return redirect("/admin_home")
+    elif session.get("logged_in_assistant"):
+        return redirect("/assistant_home")
+    else:
+        return render_template("login.html")
+    
+
 #a logout function to go back to login and make the session logged_in = false
 @app.route("/logout", methods=["GET","POST"])
 def sign_out():
@@ -170,8 +181,7 @@ def filter_doctor_cat():
             doctor = db.execute("SELECT * FROM doctors WHERE category = ? ORDER BY doc_name", category)
             return render_template("search_doctor.html", doctor=doctor)
         else:
-            doctor = []
-            return render_template("search_doctor.html", doctor=doctor)
+            return render_template("search_doctor.html", doctor=[])
 
 #a route that shows all of the details of doctor that the patient have choose to see his details
 @app.route("/doctor_show_details", methods=["POST"])
@@ -181,7 +191,6 @@ def doctor_show_details():
     return render_template("doctor_show_details.html", doctor = doctor)
 
 @app.route("/home")
-@cache.cached(timeout=300)
 def home_page():
     if not session.get("logged_in"):
         return redirect("/login")
@@ -201,7 +210,6 @@ def home_page():
         return render_template("home.html", appoint=appoint, current_date=current_date)
 
 @app.route("/filter_date_home_doc", methods=["GET"])
-@cache.cached(timeout=300)
 def filter_date_home_doc():
     if not session.get("logged_in"):
         return redirect("/login")
@@ -264,7 +272,6 @@ def show_patients_fun():
 
 #a route that shows all of the patients that are saved with this doc_id of the doctor signed-in
 @app.route("/show_all",methods=["GET"] )
-@cache.cached(timeout=300)
 def show_all():
     if not session.get("logged_in"):
         return redirect("/login")
@@ -274,7 +281,6 @@ def show_all():
 
 #a route to search in the database fo a person with a name like the name written on the database with the doc_id of the doctor signed_in and not case sensitive
 @app.route("/search_name", methods=["GET"])
-@cache.cached(timeout=300)
 def search_name():
     if not session.get("logged_in"):
         return redirect("/login")
@@ -289,7 +295,6 @@ def search_name():
 
 #a route to search by id for a person on the database with the doc_id of the doctor signed-in
 @app.route("/search_id", methods=["GET"])
-@cache.cached(timeout=300)
 def search_id():
     if not session.get("logged_in"):
         return redirect("/login")
