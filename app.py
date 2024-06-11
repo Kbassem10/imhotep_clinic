@@ -1,5 +1,6 @@
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
+from flask_caching import Cache
 from cs50 import SQL
 from werkzeug.utils import secure_filename
 import os
@@ -17,6 +18,7 @@ app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
 app.config['SECRET_KEY'] = secret_key
 app.config["SESSION_COOKIE_SECURE"] = True
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
 Session(app)
 
@@ -25,6 +27,7 @@ db = SQL("sqlite:///kbclinic.db")
 
 #a function to select all of the data from the patients and details and transactions table where the id is like given from the html
 #and also calculate the age of a person from the date of today - his birthdate
+
 def select_patient():
         id = request.form.get("id")
         d_id = request.form.get("d_id")
@@ -83,6 +86,7 @@ def shape_check():
 
 #the home page route
 @app.route("/")
+@cache.cached(timeout=120)
 def choose():
     return render_template("choose.html")
 
@@ -155,6 +159,7 @@ def login_page():
 @app.route("/logout", methods=["GET","POST"])
 def sign_out():
     session.permanent = False
+    cache.clear()
     if session.get("logged_in"):
         session["logged_in"] = False
         return redirect("/login")
@@ -169,6 +174,7 @@ def sign_out():
 
 #a route that opens a page that have all of the doctors and their details to the patients to see what doctor they need
 @app.route("/patient_view")
+@cache.cached(timeout=120)
 def patient_view():
     doctor = db.execute("SELECT * FROM doctors WHERE user_cat = ? ORDER BY doc_name COLLATE NOCASE", "doctor" )
     return render_template("patient_view.html", doctor = doctor)
@@ -191,6 +197,7 @@ def doctor_show_details():
     return render_template("doctor_show_details.html", doctor = doctor)
 
 @app.route("/home")
+@cache.cached(timeout=50)
 def home_page():
     if not session.get("logged_in"):
         return redirect("/login")
@@ -246,12 +253,19 @@ def add_patient():
             db.execute("DELETE FROM details WHERE id = ?", id)
 
         if add:
-            patients , shape = show_patients_fun()
-            notification = "added successfully"
-            return render_template("show_all.html", patients=patients, shape = shape, notification = notification)
+            d_id = request.form.get("d_id")
+            id_query = db.execute("SELECT id FROM details WHERE d_id = ?", d_id)
+            if len(id_query) > 0:
+                id = id_query[0]["id"]
+
+            doc_id = session.get("doc_id")
+            person = db.execute("SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) - (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age FROM patients WHERE id = ? ", id)
+            details = db.execute("SELECT * FROM details WHERE id = ?", id)
+            trans = db.execute("SELECT * FROM transactions WHERE doc_id = ?", doc_id)
+            shape = shape_check()
+            return render_template("open_patient.html", person = person, details = details, trans = trans, shape = shape)
         else:
             return redirect ("/add_p_page")
-
 
 #a route that returns the add new patient page
 @app.route("/add_p_page")
@@ -890,9 +904,9 @@ def show_prescription():
 app.config["MAX_CONTENT_LENGTH"] = 3 * 1024 * 1024
 
 #the path that the user will save the photo that will be uploaded
-app.config["UPLOAD_FOLDER_PHOTO"] = "//home//kbclinic//static//doc"
+app.config["UPLOAD_FOLDER_PHOTO"] = os.path.join(os.getcwd(), "static", "doc")
 
-app.config["UPLOAD_FOLDER_LOGO"] = "//home//kbclinic//static//doc_logo"
+app.config["UPLOAD_FOLDER_LOGO"] = os.path.join(os.getcwd(), "static", "doc_logo")
 
 #a list with all of the file extentions that are allowed to be uploaded for more secuirity
 ALLOWED_EXTENSIONS = ("png", "jpg", "jpeg")
@@ -1325,7 +1339,6 @@ def delete_patient():
         patients = db.execute("SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) - (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age FROM patients ORDER BY name COLLATE NOCASE")
         return render_template("show_all_patients.html", patients=patients, notification = notification)
 
-
     elif session.get("logged_in"):
         id = request.form.get("id")
         if id:
@@ -1479,6 +1492,7 @@ def assistant_id():
         return doc_id
 
 @app.route("/assistant_home")
+@cache.cached(timeout=120)
 def assistant_home():
     if not session.get("logged_in_assistant"):
         return render_template("login.html")
