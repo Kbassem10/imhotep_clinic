@@ -1,14 +1,14 @@
 {
-    "name": "KB Clinic",
-    "short_name": "KBClinic",
+    "name": "Imhotep Clinic",
+    "short_name": "Imhotep Clinic",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#ffffff",
     "icons": [
         {
-            "src": "kbclinic1.ico",
-            "sizes": "192x192",
+            "src": "imhotepclinic1.png",
+            "sizes": "512x512",
             "type": "image/png"
         }
     ]
