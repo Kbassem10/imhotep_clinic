@@ -13,6 +13,7 @@ app = Flask(__name__)
 
 secret_key = secrets.token_hex(16)
 
+<<<<<<< HEAD
 app.config['SECRET_KEY'] = secret_key
 app.permanent_session_lifetime = timedelta(days=30)
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -20,6 +21,19 @@ sess = Session(app)
 
 #mentien the database
 db = SQL("sqlite:///imhotep_clinic.db")
+=======
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SECRET_KEY'] = secret_key
+app.config["SESSION_COOKIE_SECURE"] = True
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+
+Session(app)
+
+#mentien the database
+db = SQL("sqlite:///kbclinic.db")
+>>>>>>> imhotep_clinic/main
 
 #a function to select all of the data from the patients and details and transactions table where the id is like given from the html
 #and also calculate the age of a person from the date of today - his birthdate
@@ -82,6 +96,7 @@ def shape_check():
 
 #the home page route
 @app.route("/")
+<<<<<<< HEAD
 def choose():
     if session.get("logged_in"):
         return redirect("/home")
@@ -91,6 +106,11 @@ def choose():
         return redirect("/assistant_home")
     else:
         return render_template("choose.html")
+=======
+@cache.cached(timeout=120)
+def choose():
+    return render_template("choose.html")
+>>>>>>> imhotep_clinic/main
 
 #the login route that checks if the username "not case sensitive" and the password the are given from the template are the same as those on the databse
 #and also check if the user category of this person is doctor so it shows for him the doctors page and if he is an admin it shows to him the admin page
@@ -100,6 +120,10 @@ def sign_in_admin():
     if request.method == "POST":
         username = (request.form.get("username").strip()).lower()
         password = request.form.get("password")
+<<<<<<< HEAD
+=======
+        remember_me = request.form.get("remember_me")
+>>>>>>> imhotep_clinic/main
 
         login = db.execute("SELECT * FROM doctors WHERE LOWER(username) = ?", username)
         login_a = db.execute("SELECT * FROM assistants WHERE LOWER(username) = ?", username)
@@ -114,13 +138,23 @@ def sign_in_admin():
 
         #checks if the data are in the database make the session logged_in = true if not it shows an error
         if login and check_password_hash(password_db, password):
+<<<<<<< HEAD
+=======
+            if remember_me:
+                session.permanent = True
+            else:
+                session.permanent = False
+>>>>>>> imhotep_clinic/main
             if user_cat == "doctor":
                     doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ? AND password = ?", username, password_db)
                     session.pop("logged_in_assistant", None)
                     session.pop("a_id", None)
                     session["logged_in"] = True
                     session["doc_id"] = doctor[0]["doc_id"]
+<<<<<<< HEAD
                     session.permanent = True
+=======
+>>>>>>> imhotep_clinic/main
                     return redirect("/home")
             elif user_cat == "admin":
                     doctor = db.execute("SELECT doc_id FROM doctors WHERE LOWER(username) = ? AND password = ?", username, password_db)
@@ -128,14 +162,20 @@ def sign_in_admin():
                     session.pop("a_id", None)
                     session["logged_in_admin"] = True
                     session["doc_id"] = doctor[0]["doc_id"]
+<<<<<<< HEAD
                     session.permanent = True
+=======
+>>>>>>> imhotep_clinic/main
                     return redirect("/admin_home")
         elif login_a and check_password_hash(login_a[0]["password"], password):
             if user_cat_a == "assistant":
                 doctor = db.execute("SELECT a_id FROM assistants WHERE LOWER(username) = ? AND password = ?", username, password_db_a)
                 session["logged_in_assistant"] = True
                 session["a_id"] = doctor[0]["a_id"]
+<<<<<<< HEAD
                 session.permanent = True
+=======
+>>>>>>> imhotep_clinic/main
                 return redirect("/assistant_home")
         else:
                 error = "Invalid username or password"
@@ -154,10 +194,15 @@ def login_page():
     else:
         return render_template("login.html")
     
+<<<<<<< HEAD
+=======
+
+>>>>>>> imhotep_clinic/main
 #a logout function to go back to login and make the session logged_in = false
 @app.route("/logout", methods=["GET","POST"])
 def sign_out():
     session.permanent = False
+<<<<<<< HEAD
     if session.get("logged_in"):
         session.permanent = False
         session["logged_in"] = False
@@ -177,10 +222,27 @@ def sign_out():
         session.permanent = False
         session["logged_in"] = False
         session.clear()
+=======
+    cache.clear()
+    if session.get("logged_in"):
+        session["logged_in"] = False
+        return redirect("/login")
+    elif session.get("logged_in_admin"):
+        session["logged_in_admin"] = False
+        return redirect("/login")
+    elif session.get("logged_in_assistant"):
+        session["logged_in_assistant"] = False
+        return redirect("/login")
+    else:
+>>>>>>> imhotep_clinic/main
         return render_template("login.html")
 
 #a route that opens a page that have all of the doctors and their details to the patients to see what doctor they need
 @app.route("/patient_view")
+<<<<<<< HEAD
+=======
+@cache.cached(timeout=120)
+>>>>>>> imhotep_clinic/main
 def patient_view():
     doctor = db.execute("SELECT * FROM doctors WHERE user_cat = ? ORDER BY doc_name COLLATE NOCASE", "doctor" )
     return render_template("patient_view.html", doctor = doctor)
@@ -203,6 +265,10 @@ def doctor_show_details():
     return render_template("doctor_show_details.html", doctor = doctor)
 
 @app.route("/home")
+<<<<<<< HEAD
+=======
+@cache.cached(timeout=50)
+>>>>>>> imhotep_clinic/main
 def home_page():
     if not session.get("logged_in"):
         return redirect("/login")
@@ -1209,6 +1275,17 @@ def show_all_assi():
         doctor = db.execute(query)
         return render_template("show_all_assi.html", doctor=doctor)
 
+<<<<<<< HEAD
+=======
+@app.route("/show_all_patients", methods=["GET"])#a route that shows all of the patients on only one page
+def show_all_patients():
+    if not session.get("logged_in_admin"):
+        return redirect("/login")
+    else:
+        patients = db.execute("SELECT *, strftime('%Y', 'now') - strftime('%Y', birthdate) - (strftime('%m-%d', 'now') < strftime('%m-%d', birthdate)) AS age FROM patients ORDER BY name COLLATE NOCASE")
+        return render_template("show_all_patients.html", patients=patients)
+
+>>>>>>> imhotep_clinic/main
 @app.route("/reset_password/<username>", methods=["GET", "POST"])
 def reset_password(username):
     if not session.get("logged_in_admin"):
@@ -1489,6 +1566,10 @@ def assistant_id():
         return doc_id
 
 @app.route("/assistant_home")
+<<<<<<< HEAD
+=======
+@cache.cached(timeout=120)
+>>>>>>> imhotep_clinic/main
 def assistant_home():
     if not session.get("logged_in_assistant"):
         return render_template("login.html")
