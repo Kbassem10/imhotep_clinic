@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body class="centered">
+    {% include 'nav.html' %}
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+    <br><br>
+    <h1 class="centered animate__animated animate__pulse">All Appointments</h1><br>
+    {% if appoint %}
+    <h2 class="centered animate__animated animate__pulse">{{ appoint[0].date }}</h2><br>
+    {% else %}
+    <h2 class="centered animate__animated animate__pulse">{{ current_date }}</h2><br>
+    {% endif %}
+    <form action="/filter_date_home_doc" method="get">
+        <input autocomplete="off" autofocus name="date_filter" placeholder="Date" type="date" class="input"
+            style="width: 290px;"><br><br>
+        <button type="submit" class="btn-green">Filter</button>
+    </form>
+    <table class="c">
+        <thead>
+            <th>Patient</th>
+            <th>Time</th>
+            <th>Category</th>
+            <th>Status</th>
+        </thead>
+        <tbody>
+            {% for appoint in appoint %}
+            <tr>
+                <td>
+                    <form action="/add_details_redirect" method="post">
+                        <input name="id" type="hidden" value="{{ appoint.id }}">
+                        <input name="appoint_id" type="hidden" value="{{ appoint.appoint_id }}">
+                        <button type="submit" class="transparent-buttonb" style="text-align: center;">{{ appoint.patient_name }}</button>
+                    </form>
+                </td>
+                <td>{{ appoint.time }}</td>
+                <td>{{ appoint.category }}</td>
+                <td>{{ appoint.status }}</td>
+                <td>
+                    <form action="/edit_appoint_doc" method="post">
+                        <button type="submit" class="btn-blue">Edit Appointment</button>
+                        <input name="appoint_id" type="hidden" value="{{ appoint.appoint_id }}">
+                        <input name="date" type="hidden" value="{{ appoint.date }}">
+                    </form>
+                    <form action="/delete_appoint_doc" method="post"
+                        onclick="return confirm('Are you sure you want to delete this appointment')">
+                        <button type="submit" class="btn-red">Delete Appointment</button>
+                        <input name="appoint_id" type="hidden" value="{{ appoint.appoint_id }}">
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        
+    </table>
+    </form>
+</body>
+{% include 'footer_doctor.html' %}
+<script>
+    // Get the input and select elements
+    const searchInput = document.getElementById('searchInput');
+    const categorySelect = document.getElementById('categorySelect');
+    const options = [...categorySelect.options]; // Convert options to an array
+
+    // Event listener for the input field
+    searchInput.addEventListener('input', function () {
+        const searchText = searchInput.value.toLowerCase();
+
+        // Filter options based on user input
+        const filteredOptions = options.filter(option => {
+            const optionText = option.textContent.toLowerCase();
+            return optionText.includes(searchText);
+        });
+
+        // Update the select dropdown with filtered options
+        categorySelect.innerHTML = ''; // Clear previous options
+
+        // Add filtered options to the select dropdown
+        filteredOptions.forEach(option => {
+            categorySelect.appendChild(option);
+        });
+    });
+
+</script>
+
+</html>

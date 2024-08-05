@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      {% include 'css.html' %}
+   </head>
+   <body>
+      {% include 'nav.html' %}
+      {% if error %}
+      <div class="error-message">{{ error }}</div>
+      {% endif %}
+      <h2>Upload Image</h2>
+      <form action = "/upload_logo" method = "POST" enctype="multipart/form-data" id="upload-form">
+         <div class="grid w-full max-w-xs items-center gap-1.5">
+            <label class="text-sm text-gray-400 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Picture</label>
+            <label for="file-upload" class="btn-upload">
+               <i class="fas fa-cloud-upload-alt"></i> Upload File
+           </label>
+            <input id="file-upload" type="file" name="file" style="display: none;" id="picture" onchange="submitForm();">
+      </div>
+      </form>
+   </body>
+   {% include 'footer_doctor.html' %}
+   <script>
+      function submitForm() {
+          document.getElementById("upload-form").submit();
+      }
+  </script>
+</html>

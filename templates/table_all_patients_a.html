@@ -1,0 +1,82 @@
+<head>
+  {% include 'css.html' %}
+</head>
+
+<body class="centered">
+  {% include 'nav_assi.html' %}
+  <br>
+  <table>
+    <th>
+      <form action="/filter_gender_assi">
+        <div class="mydict">
+          <div>
+            <label>
+              <input type="radio" name="gender" value="female">
+              <span>Female</span>
+            </label>
+            <label>
+              <input type="radio" name="gender" value="male">
+              <span>Male</span>
+            </label>
+          </div>
+          <button type="submit" class="btn-blue">Submit</button>
+        </div>
+      </form>
+    </th>
+    <th>
+      <form action="/filter_age_assi" id="ageFilterForm">
+        <input type="number" name="age1" autocomplete="off" class="input" id="age1Input" placeholder="From Age: "
+          required>
+        <input type="number" name="age2" autocomplete="off" class="input" id="age2Input" placeholder="To Age: "
+          required>
+        <button type="submit" class="btn-blue">Submit</button>
+      </form>
+    </th>
+    <th>
+      <form action="/search_id_assi" method="get">
+        <input type="number" name="id" autocomplete="off" class="input" placeholder="ID">
+        <button type="submit" class="btn-blue">Submit</button>
+      </form>
+    </th>
+  </table>
+  <table class="c">
+    <thead>
+      <tr>
+        <th>Patient ID</th>
+        <th>Name</th>
+        <th>Phone Number</th>
+        <th>Gender</th>
+        <th>Birthdate</th>
+        <th>Age</th>
+        <th>Category</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for person in patients %}
+      <tr>
+        <td>
+          <form action="/open_patient_assi" method="GET">
+            <input name="id" type="hidden" value="{{ person.id }}">
+            <button type="submit" class="transparent-buttonb">{{ person.id }}</button>
+          </form>
+        </td>
+        <td>{{ person.name }}</td>
+        <td>{{ person.phone_number }}</td>
+        <td>{{ person.gender }}</td>
+        <td>{{ person.birthdate }}</td>
+        <td>{{ person.age }}</td>
+        <td>{{ person.patient_cat }}</td>
+        <td>
+          <form action="/add_appoint_date_assi_redirect" method="post">
+            <input name="id" type="hidden" value="{{ person.id }}">
+            <button type="submit" class="btn-green">
+              <i class="fas fa-calendar-plus"></i></button>
+            </button>
+          </form>
+        </td>
+        {% endfor %}
+    </tbody>
+  </table>
+
+</body>
+{% include 'footer_assi.html' %}

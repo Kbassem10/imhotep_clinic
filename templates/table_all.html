@@ -1,0 +1,105 @@
+{% include 'css.html' %}
+
+<body class="centered">
+  {% include 'nav.html' %}
+  
+  {% if notification %}
+  <div class="done-message">{{ notification }}</div>
+  {% endif %}
+  {% if notification_d %}
+  <div class="done-message">{{ notification_d }}</div>
+  {% endif %}
+  <br>
+
+  <table>
+    <th>
+  <form action="/filter_gender">
+    <div class="mydict">
+        <div>
+                <label>
+                    <input type="radio" name="gender" value="female">
+                    <span>Female</span>
+                </label>
+                <label>
+                    <input type="radio" name="gender" value="male">
+                    <span>Male</span>
+                </label>
+        </div>
+                <button type="submit" class="btn-blue">Submit</button>
+    </div>
+</form>
+</th>
+<th>
+<form action="/filter_age" id="ageFilterForm">
+      <input type="number" name="age1" autocomplete="off" class="input" id="age1Input" placeholder="From Age: " required>
+      <input type="number" name="age2" autocomplete="off" class="input" id="age2Input" placeholder="To Age: " required>
+      <button type="submit" class="btn-blue">Submit</button>
+</form>
+</th>
+</table>
+
+  <table class="c">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Phone Number</th>
+        <th>Gender</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for person in patients %}
+      <tr>
+        <td>{{ person.id }}</td>
+        <td>
+          <form action="/open_patient" method="post">
+            <input name="id" type="hidden" value="{{ person.id }}">
+            <button class="transparent-buttonb" type="submit">{{ person.name }}</button>
+          </form>
+        </td>
+        <td>{{ person.phone_number }}</td>
+        <td>{{ person.gender }}</td>
+        <td>
+          
+            <form action="/delete_patient" method="post"
+              onsubmit="return confirm('Are you sure you want to delete this patient');">
+              <input name="id" type="hidden" value="{{ person.id }}">
+              <button type="submit" class="btn btn-red">
+                <i class="fas fa-trash"></i>
+              </button>
+            </form>
+          
+        {% if shape == "all" %}
+        
+          <form action="/add_appoint_date_doc_redirect" method="post">
+            <input name="id" type="hidden" value="{{ person.id }}">
+            <button type="submit" class="btn-orange">
+              <i class="fas fa-calendar-plus"></i></button>
+          </form>
+        
+        {% elif shape == "notes" %}
+
+        {% endif %}
+      </td>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</body>
+<script>
+  document.getElementById('ageFilterForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+  
+      var age1 = parseInt(document.getElementById('age1Input').value);
+      var age2 = parseInt(document.getElementById('age2Input').value);
+  
+      if (age2 < age1) {
+          alert("Second age cannot be less than the first age!");
+          return;
+      }
+      document.getElementById('ageFilterForm').submit();
+  });
+  </script>
+  {% include 'footer_doctor.html' %}
+  

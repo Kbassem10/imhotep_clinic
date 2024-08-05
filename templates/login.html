@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body style="background-color:  #202761;">
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+    <h1 class="centered animate__animated animate__pulse" style="color: white;">Login</h1>
+    <div class="navbar">
+        <a href="/">Back</a>
+    </div>
+    <br><br><br><br>
+    <div class="login-box">
+        <form action="/login" method="post">
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="username" type="text" required="">
+                <label>Username</label>
+            </div>
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="password" type="password" required="" id="password">
+                <label>Password</label>
+            </div>
+                <input type="checkbox" id="password-toggle" onclick="togglePasswordVisibility()">
+                <span class="checkmark">Show password</span>
+            <a>
+                <button type="submit" class="transparent-button1">Login</button>
+            </a>
+        </form>
+        <br>
+    </div>  
+</body>
+<script>
+    document.getElementById('login-form').addEventListener('submit', function() {
+        document.getElementById('loading-overlay').style.display = 'flex';
+    });
+  
+    function togglePasswordVisibility() {
+    var passwordInput = document.getElementById("password");
+    if (passwordInput.type === "password") {
+      passwordInput.type = "text";
+    } else {
+      passwordInput.type = "password";
+    }
+  }
+</script>
+</html>

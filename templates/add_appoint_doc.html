@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body class="centered">
+    {% include 'nav.html' %}
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+    <br><br>
+    {% include 'back.html' %}
+    <h1 class="centered animate__animated animate__pulse">Add New Appointment</h1><br>
+    <form action="/add_appoint_doc" method="post">
+        <input name="id" type="hidden" value="{{person[0].id}}">
+        <select name="category" id="categorySelect" style="width: 150px; padding: 5px; border-radius: 1rem;" required>
+            <option value="" disabled selected>Select a category</option>
+            {% for price in prices_cat %}
+            <option value="{{ price.price_category }}">{{ price.price_category }}</option>
+            {% endfor %}
+        </select>
+
+        <table class="c">
+            <thead>
+                <th>Day Of Week</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Select</th>
+            </thead>
+            <tbody>
+                {% for appoint in free_appoint %}
+                <tr>
+                    <td>{{ appoint.day_of_week }}</td>
+                    <td>{{ appoint.date }}</td>
+                    <td>{{ appoint.time }}</td>
+                    <td>
+                        <input type="radio" name="datetime" value="{{ appoint.date }} {{ appoint.time }}" required>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn-blue">Add</button>
+    </form>
+</body>
+{% include 'footer_doctor.html' %}
+
+</html>

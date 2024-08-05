@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+
+</head>
+
+<body>
+    {% include 'nav.html' %}
+
+    {% if error %}
+
+    <div class="error-message">
+        {{ error }} <a href="/price_cat_redirect">Add Prices</a>
+    </div>
+
+    {% endif %}
+    <br>
+    <br>
+    {% include 'back.html' %}
+    <h1 class="centered animate__animated animate__pulse">Add A New Record</h1>
+
+
+    <form action="/add_details" method="post" onsubmit="return confirm('ARE YOU SURE YOU WANT TO ADD THIS RECORD?');">
+        <input autocomplete="off" autofocus name="remarks" placeholder="Remarks" type="text" class="input">&nbsp&nbsp
+        <br><br>
+
+
+        {% if appoint %}
+            <input name ="price_category" type="hidden" value="{{ appoint[0].category }}">
+            <input name ="date" type="hidden" value="{{ appoint[0].date }}">
+        {% else %}
+        {% if shape == "all" %}
+        <input autocomplete="off" autofocus name="date" placeholder="Date" type="date" class="input" required>
+        <br><br>
+        <table>
+            <td>                
+                <input type="text" id="searchInput" placeholder="Search categories"
+                    style="width: 150px; padding: 5px; border-radius: 1rem;">
+            </td>
+            <td>
+                <table>
+                    <th>
+                        <select name="price_category" id="categorySelect"
+                            style="width: 150px; padding: 5px; border-radius: 1rem;" required>
+                            <option disabled selected>Categories</option>
+                            {% for price in prices_cat %}
+                                <option value="{{price.price_category}}">{{price.price_category}}</option>
+                            {% endfor %}
+                        </select>
+                    </th>
+                </table>
+            </td>
+        </table>
+        {% elif shape == "notes" %}
+        <input autocomplete="off" autofocus name="date" placeholder="Date" type="date" class="input" required>
+        {% elif shape == "notes_pres" %}
+        <input autocomplete="off" autofocus name="date" placeholder="Date" type="date" class="input" required>
+        {% endif %}
+        {% endif %}
+
+        <input name="id" type="hidden" value="{{ person[0].id }}">
+        <div>Details</div>
+        <div class="wrapper">
+            <textarea class="form-control full-width" rows="20" id="details" name="details" autocomplete="off"
+                style="font-size:14px;"></textarea>
+        </div>
+        <button type="submit" class="btn btn-blue">Add</button>
+    </form>
+    <br>
+</body>
+<script>
+    // Get the input and select elements
+    const searchInput = document.getElementById('searchInput');
+    const categorySelect = document.getElementById('categorySelect');
+    const options = [...categorySelect.options]; // Convert options to an array
+
+    // Event listener for the input field
+    searchInput.addEventListener('input', function () {
+        const searchText = searchInput.value.toLowerCase();
+
+        // Filter options based on user input
+        const filteredOptions = options.filter(option => {
+            const optionText = option.textContent.toLowerCase();
+            return optionText.includes(searchText);
+        });
+
+        // Update the select dropdown with filtered options
+        categorySelect.innerHTML = ''; // Clear previous options
+
+        // Add filtered options to the select dropdown
+        filteredOptions.forEach(option => {
+            categorySelect.appendChild(option);
+        });
+    });
+
+</script>
+{% include 'footer_doctor.html' %}
+
+</html>

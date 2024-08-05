@@ -1,0 +1,42 @@
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body class="centered">
+    {% include 'nav_admin.html' %}
+    <br><br>
+    {% if notification %}
+    <div class="done-message">{{ notification }}</div>
+    {% endif %}
+    <table class="c">
+        <thead>
+            <tr>
+                <th>Assistant Name</th>
+                <th>Assistant Phone Number</th>
+                <th>Doctor ID</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doctor in doctor %}
+            <tr>
+                <td>{{ doctor.a_name }}</td>
+                <td>{{ doctor.a_phonenumber }}</td>
+                <td>
+                    <form action="/search_doctor_id" method="GET">
+                        <input name="doc_id" type="hidden" value="{{ doctor.doc_id }}">
+                        <button type="submit" class="transparent-buttonb">{{ doctor.doc_id
+                            }}</button>
+                    </form>
+                </td>
+                <td>
+                    <form action="/reset_password_a/{{ doctor.username }}" method="GET">
+                      <button class="btn-red" type="submit" style="width: 100%; height: 100%">Reset Password</button>
+                    </form>
+                  </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% include 'footer_admin.html' %}
+</body>

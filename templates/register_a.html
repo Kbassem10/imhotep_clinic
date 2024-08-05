@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+    <script>
+        function validatePassword() {
+            var password = document.getElementById("password").value;
+            var confirmPassword = document.getElementById("confirm_password").value;
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match!");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+
+<body style="background-color:  #202761;">
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+    {% include 'back.html' %}
+    <br><br><br><br>
+    <div class="login-box">
+        <h1 class="centered animate__animated animate__pulse" style="color: white;">Register</h1>
+        <form action="/register_a" method="post" onsubmit="return validatePassword()">
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="doc_name" type="text" required="">
+                <label>Name</label>
+            </div>
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="doc_phone_number" type="text" required="" maxlength="11"
+                    pattern="[0-9]{11}">
+                <label>Phone Number</label>
+            </div>
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="username" type="text" required="">
+                <label>Username</label>
+            </div>
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="password" type="password" required="" id="password">
+                <label>Password</label>
+            </div>
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="confirm_password" type="password" required=""
+                    id="confirm_password">
+                <label>Confirm Password</label>
+            </div>
+            <div style="width: 150px; padding: 5px; border-radius: 1rem;">
+                {% for docid in doc %}
+                    <input type="radio" name="selected_docs[]" id="doc_{{ docid.doc_id }}" value="{{ docid.doc_id }}">
+                    <label for="doc_{{ docid.doc_id }}">{{ docid.doc_name }}</label><br>
+                {% endfor %}
+            </div>
+            
+            
+            <a>
+                <button type="submit" class="transparent-button1">Add</button>
+                <span></span>
+            </a>
+        </form>
+    </div>
+</body>
+
+</html>

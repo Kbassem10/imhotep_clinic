@@ -1,0 +1,54 @@
+<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a href="/assistant_home">
+                        <i class="fas fa-home"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/show_all_patients_a">
+                        <i class="fas fa-user"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/add_new_a">
+                        <i class="fas fa-add"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/trans_assi">
+                        <i class="fas fa-money-bill"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/edit_assi">
+                        <i class="fas fa-cogs"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a>
+                        <form action="/logout" method="post" onsubmit="return confirm('Are you sure you want to logout');">
+                            <button class="transparent-button1" type="submit">
+                                <i class="fas fa-sign-out"></i>
+                            </button>
+                        </form>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="search-container">
+            <form action="/search_phone_assi" method="GET">
+                <div class="form__group field">
+                    <input autocomplete="off" name="phone_number" type="text" class="form__field" placeholder="Search By Phone Number"
+                    maxlength="11" pattern="[0-9]{11}" size="30"><br><br>
+                    <label for="Search" class="form__label">Search By Phone Number</label>
+                    <button type="submit" class="btn btn-black">Search</button>
+                </div>
+            </form>
+        </div>
+</nav>

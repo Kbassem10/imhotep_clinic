@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+    <style>
+        table {
+            background-color: #59788e !important; 
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: none;
+        }
+
+        /* Example button style */
+        .btn-new {
+            background-color: #f0f0f0; /* Light grey, adjust as needed */
+        }
+    </style>
+</head>
+
+<body class="centered">
+    <br><br><br><br><br><br><br><br><br><br>
+    <table>
+        <tr>
+            <td>
+                <form action="/patient_view">
+                    <button class="btn-new animate__animated animate__pulse">Patient</button>
+                </form>
+            </td>
+            <td>
+                <form action="/login_page" method="post">
+                    <button class="btn-new animate__animated animate__pulse">User</button>
+                </form>
+            </td>
+        </tr>
+    </table>
+    <div class="text-centered">
+        <img src="{{ url_for('static', filename='imhotepclinic.png') }}" height="200" width="auto" alt="Imhotep Clinic">
+    </div>
+</body>
+{% include 'footer.html' %}
+</html>

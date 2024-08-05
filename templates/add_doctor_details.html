@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  {% include 'css.html' %}
+</head>
+
+<body>
+    {% include 'nav.html' %}
+    <h1 class="centered animate__animated animate__pulse">Add Doctor Details</h1>
+    <form action="add_d_details" method="post">  
+        <div class="wrapper">
+        <textarea class="form-control full-width" rows="20" id="details" name="details" autocomplete="off"
+            style="font-size:14px;">{{ doctor[0].details }}</textarea>
+        </div>
+        <button type="submit" class="btn-blue">Add</button>
+    </form>
+</body>
+{% include 'footer_doctor.html' %}
+</html>

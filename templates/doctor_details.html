@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  {% include 'css.html' %}
+</head>
+
+<body>
+  {% include 'nav.html' %}
+  {% if error %}
+  <div class="error-message">{{ error }}</div>
+  {% endif %}
+
+  {% if notification %}
+  <div class="done-message">{{ notification }} {{ doctor[0].shape }}</div>
+  {% endif %}
+  <br><br>
+
+  <h1 class="centered animate__animated animate__pulse">Doctor Details</h1>
+  {% if doctor[0].photo_path %}
+  <img src="{{ url_for('static', filename = '/doc/'+ doctor[0].photo_path) }}" alt="Image" class="doc_img">
+  <form action="/delete_image" method="post" onclick="return confirm('Are you sure you want to delete your image')">
+    <button type="submit" class="btn-orange">Delete Image</button>
+  </form>
+  {% else %}
+  <img src="{{ url_for('static', filename='ay_kalam') }}" alt="Doctor Image" class="doc_img">
+  <form action="upload_redirect">
+    <button type="submit" class="btn-blue">Upload Image</button>
+  </form>
+  {% endif %}
+
+  <br><br>
+  {% if doctor[0].logo_path %}
+  <img src="{{ url_for('static', filename = '/doc_logo/'+ doctor[0].logo_path) }}" alt="Image" class="logo_img">
+  <form action="/delete_logo" method="post" onclick="return confirm('Are you sure you want to delete your logo')">
+    <button type="submit" class="btn-red">Delete Image</button>
+  </form>
+  {% else %}
+  <img src="{{ url_for('static', filename='ay_kalam') }}" alt="Doctor logo">
+  <form action="/upload_logo_redirect">
+    <button type="submit" class="btn-green">Upload Logo</button>
+  </form>
+  {% endif %}
+
+
+  <br><br>
+  <h2>{{doctor[0].shape}}</h2>
+  <form action="/change_shape" method="post">
+    <select name="shape" id="shape_select" style="width: 150px; padding: 5px; border-radius: 1rem;">
+      <option value="" disabled>Categories</option>
+      <option value="all">All</option>
+      <option value="notes">Notes</option>
+      <option value="notes_pres">Notes And Pres</option>
+    </select>
+    <button type="submit" class="btn-blue">Submit</button>
+  </form>
+  
+
+
+  <br><br>
+  <p><strong>Name: </strong> {{ doctor[0].doc_name }}</p>
+  <p><strong>Username: </strong> {{ doctor[0].username }}</p>
+  <p><strong>Category: </strong> {{ doctor[0].category }}</p>
+  <p><strong>Phone Number: </strong> {{ doctor[0].doc_phone_number }}</p>
+  <p><strong>Details: </strong></p>
+  <pre> {{ doctor[0].details }} </pre>
+  <table style="background-color: #59788e !important;">
+    <td>
+      <form action="/add_d_details_redirect">
+        <button type="submit" class="btn-blue">Add Details</button>
+      </form>
+    </td>
+    <td>
+
+      <form action="/change_pass_check_redirect">
+        <button type="submit" class="btn-red">Change User Password</button>
+      </form>
+    </td>
+    <td>
+      <form action="/edit_doctor" method="post">
+        <button type="submit" class="btn-green">Edit Doctor Details</button>
+      </form>
+    </td>
+    <td>
+      <form action="/price_cat_redirect" method="get">
+        <button type="submit" class="btn-orange">Add Prices</button>
+      </form>
+    </td>
+    <td>
+      <form action="/add_appoint_times_redirect" method="get">
+        <button type="submit" class="btn-purple">Add Appointments Times</button>
+      </form>
+    </td>
+  </table>
+  <br>
+  <h2 class="centered">Prices</h2>
+  <table class="c">
+    <input name="doc_id" id="doc_id" type="hidden" value="{{ doctor[0].doc_id }}">
+    <br>
+    <thead>
+      <tr>
+        <th>Price ID</th>
+        <th>Price Catgeory</th>
+        <th>Patient Category</th>
+        <th>Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for price in prices %}
+      <tr>
+        <td>{{ price.price_cat_id }}</td>
+        <td>{{ price.price_category }}</td>
+        <td>{{ price.patient_cat }}</td>
+        <td>
+          <form action="/edit_prices_doc" method="post">
+              <button type="submit" class="transparent-buttonb">{{ price.price }}</button>
+              <input name="price_cat_id" id="price_cat_id_{{ price.price_cat_id }}" type="hidden" value="{{ price.price_cat_id }}">
+              <input name="doc_id" id="doc_id_{{ price.price_cat_id }}" type="hidden" value="{{ price.doc_id }}">
+          </form>
+      </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <br>
+  <h2 class="centered">Appointments Times</h2>
+  <table class="c">
+    <br>
+    <thead>
+      <tr>
+        <th>Day Of The Week</th>
+        <th>Start Time</th>
+        <th>End Time</th>
+        <th>Seperate Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for appoint in appoint_times %}
+      <tr>
+        <td>{{ appoint.day }}</td>
+        <td>{{ appoint.time1 }}</td>
+        <td>{{ appoint.time2 }}</td>
+        <td>{{ appoint.seperate_time }}</td>
+        <td>
+          <form action="/edit_appoint_times" method="post">
+            <input name="day_id" type="hidden" value="{{ appoint.day_id }}">
+            <button type="submit" class="btn btn-green" style="width: 100%;"><br>Edit<br>‎</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+{% include 'footer_doctor.html' %}
+</html>

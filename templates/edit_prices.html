@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body>
+    {% include 'nav_admin.html' %}
+    <br><br>
+    <h1 class="centered animate__animated animate__pulse">Edit Prices</h1>
+    <form action="/update_prices" , method="post">
+        <p><strong>Price Category: </strong> {{ prices[0].price_category }}</p>
+        <input name="price" id="price" class="input" value="{{ prices[0].price }}">
+        <input name="price_cat_id" id="price_cat_id" type="hidden" value="{{ prices[0].price_cat_id }}">
+        <input name="doc_id" id="doc_id" type="hidden" value="{{ prices[0].doc_id }}">
+        <button type="submit" class="btn-blue">Update</button>
+    </form>
+</body>
+{% include 'footer_admin.html' %}
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body>
+    {% include 'nav.html' %}
+    <br><br>
+    {% include 'back.html' %}
+    <h1 class="centered animate__animated animate__pulse">Person Details</h1>
+
+    <p><strong>Date:</strong> {{ detail[0].date }}</p>
+    <p><strong>Remarks:</strong> {{ detail[0].remarks }}</p>
+
+    <p><strong>Details:</strong></p>
+    <div style="font-size: 20px; background-color: white;">
+        <pre>{{ detail[0].details }}</pre>
+    </div>
+</body>
+{% include 'footer_doctor.html' %}
+</html>

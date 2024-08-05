@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body>
+    {% include 'nav.html' %}
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+    <br><br>
+    <h1 class="centered animate__animated animate__pulse">Patient</h1>
+    <p><strong>Name:</strong> {{ person[0].name }}</p>
+    <p><strong>Phone Number:</strong> {{ person[0].phone_number }}</p>
+    <p><strong>Birthdate: </strong> {{ person[0].birthdate }}</p>
+    <p><strong>Age: </strong> {{ person[0].age }}</p>
+    <p><strong>Gender: </strong> {{ person[0].gender }}</p>
+    <p><strong>Patient Category: </strong> {{ person[0].patient_cat }}</p>
+    <form action="/add_details_redirect" method="post">
+        <input name="id" type="hidden" value="{{ person[0].id }}">
+        <button type="submit" class="btn btn-blue">
+            <i class="fas fa-add"></i>
+        </button>
+    </form>
+    <form action="/edit_patient" method="post">
+        <input name="id" type="hidden" value="{{ person[0].id }}">
+        <button type="submit" class="btn btn-green"">
+            <i class="fas fa-pen">&nbsp;&nbsp;</i>
+        </button>
+      </form>
+    <br><br>
+    <table class="c">
+        <thead>
+            <tr>
+                <th>Date</th>
+                {% if shape == "all" %}
+                <th>Category</th>
+                <th>Prescrip..</th>
+                {% elif shape == "notes" %}
+                
+                {% elif shape == "notes_pres" %}
+                <th>Prescrip..</th>
+                {% endif %}
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detail in details %}
+            <tr>
+                <td>
+                    <form action="/open_patient_details" method="post">
+                        <input name="d_id" type="hidden" value="{{ detail.d_id }}">
+                        <input name="id" type="hidden" value="{{ detail.id }}">
+                        <button type="submit" class="transparent-buttonb" style="width: 100%; height: 100%"><br>{{
+                            detail.date }}<br>‎</button>
+                    </form>
+                </td>
+
+                {% if shape == "all" %}
+                <td>{{ detail.category }}</td>
+                <td>
+                    <form action="/prescription" method="post">
+                        <input name="d_id" type="hidden" value="{{ detail.d_id }}">
+                        <input name="id" type="hidden" value="{{ detail.id }}">
+                        <button type="submit" class="btn btn-blue" style="width: 100%;">
+                            <i class="fas fa-add"></i>
+                        </button>
+                    </form>
+                    <form action="/show_prescription" method="post">
+                        <input name="d_id" type="hidden" value="{{ detail.d_id }}">
+                        <input name="id" type="hidden" value="{{ detail.id }}">
+                        <button class="btn-green" type="submit"style="width: 100%;">
+                            <i class="fas fa-prescription"></i>
+                        </button>
+                    </form>
+                </td>
+                {% elif shape == "notes" %}
+                
+                {% elif shape == "notes_pres" %}
+                <td>
+                    <form action="/prescription" method="post">
+                        <input name="d_id" type="hidden" value="{{ detail.d_id }}">
+                        <input name="id" type="hidden" value="{{ detail.id }}">
+                        <button type="submit" class="btn btn-blue" style="width: 100%;">
+                            <i class="fas fa-add"></i>
+                        </button>
+                    </form>
+                    <form action="/show_prescription" method="post">
+                        <input name="d_id" type="hidden" value="{{ detail.d_id }}">
+                        <input name="id" type="hidden" value="{{ detail.id }}">
+                        <button class="btn-green" type="submit"style="width: 100%;">
+                            <i class="fas fa-prescription"></i>
+                        </button>
+                    </form>
+                </td>
+                {% endif %}
+                <td>
+                    <form action="/delete_details" method="post"
+                        onsubmit="return confirm('Are you sure you want to delete this Record? ');">
+                        <input name="d_id" type="hidden" value="{{ detail.d_id }}">
+                        <input name="id" type="hidden" value="{{ detail.id }}">
+                        <button type="submit" class="btn btn-red" style="width: 100%;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                    <form action="/edit_details" method="post">
+                        <input name="d_id" type="hidden" value="{{ detail.d_id }}">
+                        <button type="submit" class="btn-green" style="width: 100%; height: 100%">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+<br><br>
+{% include 'footer_doctor.html' %}
+
+</html>

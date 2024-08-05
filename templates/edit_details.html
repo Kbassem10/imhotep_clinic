@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body>
+    {% include 'nav.html' %}
+
+    <br>
+    <br>
+    {% include 'back.html' %}
+    <h1 class="centered animate__animated animate__pulse">Edit Details</h1>
+
+    <form action="/update_details" method="POST" onsubmit="return confirm('ARE YOU SURE YOU WANT TO UPDATE THIS RECORD?');">
+        <input name="d_id" type="hidden" value="{{ detail[0].d_id }}">
+        <label for="name">Date:</label>
+        <input type="date" name="date" value="{{ detail[0].date }}" autocomplete="off" autofocus class="input">
+        <label for="name">Remarks:</label>
+        <input type="text" name="remarks" value="{{ detail[0].remarks }}" autocomplete="off" autofocus class="input">
+        <div>Details</div>
+        <div class="wrapper">
+            <textarea class="form-control full-width" rows="20" id="details" name="details" autocomplete="off"
+                style="font-size:14px;">{{ detail[0].details|safe }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-blue">Save</button>
+    </form>
+    <br>
+    {% include 'footer_doctor.html' %}
+</body>
+
+</html>

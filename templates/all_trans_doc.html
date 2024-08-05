@@ -1,0 +1,57 @@
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body class="centered">
+    {% include 'nav.html' %}
+    <h1>All Transactions</h1>
+    <table>
+        <th>
+            <form action="/filter_date_doc" id="dateFilterForm">
+                <input type="date" name="date1" autocomplete="off" class="input" id="date1Input"
+                    placeholder="From Date: ">
+                <input type="date" name="date2" autocomplete="off" class="input" id="date2Input"
+                    placeholder="To Date: ">
+                <button type="submit" class="btn-blue">Submit</button>
+            </form>
+        </th>
+    </table>
+    <table class="c">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Patient ID</th>
+                <th>Price</th>
+                <th>Category</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for data in datas %}
+            <tr>
+                <td>{{ data.date }}</td>
+                </td>
+                <td>
+                    <form action="/search_id" method="GET">
+                        <input name="id" type="hidden" value="{{ data.id }}">
+                        <button type="submit" class="transparent-buttonb" style="text-align: center;">{{
+                            data.id}}</button>
+                    </form>
+                </td>
+                <td>{{ data.price }}</td>
+                <td>{{ data.category }}</td>
+                {% endfor %}
+            </tr>
+        </tbody>
+        {% if sum %}
+        <tfoot>
+            <tr>
+                <td colspan="2"></td>
+                <td>Total: {{ sum[0]['SUM(price)'] }}</td>
+                <td></td>
+            </tr>
+        </tfoot>
+        {% endif %}
+    </table>
+
+</body>
+{% include 'footer_admin.html' %}

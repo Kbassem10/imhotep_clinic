@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body class="centered">
+    {% include 'nav.html' %}
+
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+
+    <br><br>
+    <h1 class="centered animate__animated animate__pulse">Select Prices</h1><br><br>
+    <form action="/price_cat" method="post">
+        <input autocomplete="off" autofocus name="price" placeholder="Price" type="number" class="input" required><br><br>
+        
+        <div class="mydict">
+            <div>
+                <label>
+                    <input type="radio" name="price_category" id="medical_examination" value="medical_examination" required>
+                    <span>Medical Examination</span>
+                </label>
+                <label>
+                    <input type="radio" name="price_category" id="follow_up" value="follow_up" required>
+                    <span>Follow Up</span>
+                </label>
+                <label>
+                    <input type="radio" name="price_category" id="other_radio_price" value="other_radio" required>
+                    <span>Other</span>
+                </label>&nbsp;&nbsp;
+                <input name="price_category" id="other_price" placeholder="Others Price Category" class="input" disabled>
+            </div>
+        </div>
+
+        <div class="mydict">
+            <div>
+                <label>
+                    <input type="radio" name="patient_cat" id="private" value="private" required>
+                    <span>Private</span>
+                </label>
+                <label>
+                    <input type="radio" name="patient_cat" id="cash" value="cash" required>
+                    <span>Cash</span>
+                </label>
+                <label>
+                    <input type="radio" name="patient_cat" id="company" value="company" required>
+                    <span>Company</span>
+                </label>
+                <label>
+                    <input type="radio" name="patient_cat" id="other_radio_patient" value="other_radio" required>
+                    <span>Other</span>
+                </label>&nbsp;&nbsp;
+                <input name="patient_cat" id="other_patient" placeholder="Others Patient Category" class="input" disabled>
+            </div>
+        </div>
+
+        <br><br>
+        <button type="submit" class="btn-blue">Add Prices</button>
+    </form>
+
+    <table class="c">
+        <input name="doc_id" id="doc_id" type="hidden" value="{{ doctor[0].doc_id }}">
+        <br>
+        <thead>
+            <tr>
+                <th>Price ID</th>
+                <th>Price Category</th>
+                <th>Patient Category</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for price in prices %}
+            <tr>
+                <td>{{ price.price_cat_id }}</td>
+                <td>{{ price.price_category }}</td>
+                <td>{{ price.patient_cat }}</td>
+                <td>{{ price.price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var otherRadioPrice = document.getElementById("other_radio_price");
+            var otherInputPrice = document.getElementById("other_price");
+
+            otherRadioPrice.addEventListener("change", function () {
+                if (otherRadioPrice.checked) {
+                    otherInputPrice.removeAttribute("disabled");
+                    otherInputPrice.setAttribute("required", "required");
+                    otherInputPrice.value = ""; // Reset the input value when "Other" is selected
+                } else {
+                    otherInputPrice.setAttribute("disabled", "disabled");
+                    otherInputPrice.removeAttribute("required");
+                }
+            });
+
+            // Update the input value when it changes
+            otherInputPrice.addEventListener("input", function () {
+                if (otherRadioPrice.checked) {
+                    otherRadioPrice.value = otherInputPrice.value;
+                }
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var otherRadioPatient = document.getElementById("other_radio_patient");
+            var otherInputPatient = document.getElementById("other_patient");
+
+            otherRadioPatient.addEventListener("change", function () {
+                if (otherRadioPatient.checked) {
+                    otherInputPatient.removeAttribute("disabled");
+                    otherInputPatient.setAttribute("required", "required");
+                    otherInputPatient.value = ""; // Reset the input value when "Other" is selected
+                } else {
+                    otherInputPatient.setAttribute("disabled", "disabled");
+                    otherInputPatient.removeAttribute("required");
+                }
+            });
+
+            // Update the input value when it changes
+            otherInputPatient.addEventListener("input", function () {
+                if (otherRadioPatient.checked) {
+                    otherRadioPatient.value = otherInputPatient.value;
+                }
+            });
+        });
+    </script>
+
+    {% include 'footer_doctor.html' %}
+
+</body>
+
+</html>

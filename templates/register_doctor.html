@@ -1,0 +1,152 @@
+<head>
+    {% include 'css.html' %}
+    <script>
+        function validatePassword() {
+            var password = document.getElementById("password").value;
+            var confirmPassword = document.getElementById("confirm_password").value;
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match!");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+
+<body style="background-color:  #202761;">
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+    {% include 'back.html' %}
+    <br><br><br><br>
+    <div class="login-box">
+        <h1 class="centered animate__animated animate__pulse" style="color: white;">Register</h1>
+        <form action="/register" method="post" onsubmit="return validatePassword()">
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="doc_name" type="text" required="">
+                <label>Name</label>
+            </div>
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="doc_phone_number" type="text" required="" maxlength="11"
+                    pattern="[0-9]{11}">
+                <label>Phone Number</label>
+            </div>
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="username" type="text" required="">
+                <label>Username</label>
+            </div>
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="password" type="password" required="" id="password">
+                <label>Password</label>
+            </div>
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="confirm_password" type="password" required=""
+                    id="confirm_password">
+                <label>Confirm Password</label>
+            </div>
+            <div>
+                <table>
+                    <td>
+                        <select name="category" id="categorySelect"
+                            style="width: 150px; padding: 5px; border-radius: 1rem;" required="">
+                            <option disabled selected>Categories</option>
+                            <option value="Cardiology and Vascular Disease (Heart)">Cardiology and Vascular Disease
+                                (Heart)
+                            </option>
+                            <option value="Nephrology">Nephrology</option>
+                            <option value="Dermatology (Skin)">Dermatology (Skin)</option>
+                            <option value="Dentistry (Teeth)">Dentistry (Teeth)</option>
+                            <option value="Psychiatry (Mental, Emotional or Behavioral Disorders)">Psychiatry (Mental,
+                                Emotional
+                                or Behavioral Disorders)</option>
+                            <option value="Pediatrics and New Born (Child)">Pediatrics and New Born (Child)</option>
+                            <option value="Neurology (Brain & Nerves)">Neurology (Brain & Nerves)</option>
+                            <option value="Orthopedics (Bones)">Orthopedics (Bones)</option>
+                            <option value="Gynaecology and Infertility">Gynaecology and Infertility</option>
+                            <option value="Ear, Nose and Throat">Ear ,Nose and throat</option>
+                            <option value="Andrology and Male Infertility">Andrology and Male Infertility</option>
+                            <option value="Allergy and Immunology (Sensitivity and Immunity)">Allergy and Immunology
+                                (Sensitivity and Immunity)</option>
+                            <option value="Audiology">Audiology</option>
+                            <option value="Cardiology and Thoracic Surgery (Heart & Chest)">Cardiology and Thoracic
+                                Surgery
+                                (Heart & Chest)</option>
+                            <option value="Cardiology and Thoracic Surgery (Heart & Chest)">Cardiology and Thoracic
+                                Surgery
+                                (Heart & Chest)</option>
+                            <option value="Diabetes and Endocrinology">Diabetes and Endocrinology</option>
+                            <option value="Diagnostic Radiology (Scan Centers)">Diagnostic Radiology (Scan Centers)
+                            </option>
+                            <option value="Dietitian and Nutrition">Dietitian and Nutrition</option>
+                            <option value="Dietitian and Nutrition">Dietitian and Nutrition</option>
+                            <option value="Gastroenterology and Endoscopy">Gastroenterology and Endoscopy</option>
+                            <option value="General Practice">General Practice</option>
+                            <option value="General Practice">General Practice</option>
+                            <option value="Geriatrics (Old People Health)">Geriatrics (Old People Health)</option>
+                            <option value="Hematology">Hematology</option>
+                            <option value="Hepatology (Liver Doctor)">Hepatology (Liver Doctor)</option>
+                            <option value="Internal Medicine">Internal Medicine</option>
+                            <option value="Interventional Radiology (Interventional Radiology)">Interventional Radiology
+                                (Interventional Radiology)</option>
+                            <option value="IVF and Infertility">IVF and Infertility</option>
+                            <option value="Laboratories">Laboratories</option>
+                            <option value="Nephrology">Nephrology</option>
+                            <option value="Neurosurgery (Brain & Nerves Surgery)">Neurosurgery (Brain & Nerves Surgery)
+                            </option>
+                            <option value="Obesity and Laparoscopic Surgery">Obesity and Laparoscopic Surgery</option>
+                            <option value="Oncology (Tumor)">Oncology (Tumor)</option>
+                            <option value="Oncology Surgery (Tumor Surgery)">Oncology Surgery (Tumor Surgery)</option>
+                            <option value="Ophthalmology (Eyes)">Ophthalmology (Eyes)</option>
+                            <option value="Osteopathy (Osteopathic Medicine)">Osteopathy (Osteopathic Medicine)</option>
+                            <option value="Pain Management">Pain Management</option>
+                            <option value="Pediatric Surgery">Pediatric Surgery</option>
+                            <option value="Phoniatrics (Speech)">Phoniatrics (Speech)</option>
+                            <option value="Physiotherapy and Sport Injuries">Physiotherapy and Sport Injuries</option>
+                            <option value="Plastic Surgery">Plastic Surgery</option>
+                            <option value="Rheumatology">Rheumatology</option>
+                            <option value="Spinal Surgery">Spinal Surgery</option>
+                            <option value="Urology (Urinary System)">Urology (Urinary System)</option>
+                            <option value="Vascular Surgery (Arteries and Vein Surgery)">Vascular Surgery (Arteries and
+                                Vein
+                                Surgery)</option>
+                        </select>
+                        <input type="hidden" name="user_cat" value="doctor">
+                 </td>
+                </table>
+                <a>
+                    <button type="submit" class="transparent-button1">Add</button>
+                    <span></span>
+                </a>
+            </div>       
+        </form>
+    </div>
+</body>
+<script>
+    // Get the input and select elements
+    const searchInput = document.getElementById('searchInput');
+    const categorySelect = document.getElementById('categorySelect');
+    const options = [...categorySelect.options]; // Convert options to an array
+
+    // Event listener for the input field
+    searchInput.addEventListener('input', function () {
+        const searchText = searchInput.value.toLowerCase();
+
+        // Filter options based on user input
+        const filteredOptions = options.filter(option => {
+            const optionText = option.textContent.toLowerCase();
+            return optionText.includes(searchText);
+        });
+
+        // Update the select dropdown with filtered options
+        categorySelect.innerHTML = ''; // Clear previous options
+
+        // Add filtered options to the select dropdown
+        filteredOptions.forEach(option => {
+            categorySelect.appendChild(option);
+        });
+    });
+
+</script>
+
+</html>

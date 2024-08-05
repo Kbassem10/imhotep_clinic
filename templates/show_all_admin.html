@@ -1,0 +1,26 @@
+<head>
+    {% include 'css.html' %}
+  </head>
+  
+  <body class="centered">
+    {% include 'nav_admin.html' %}
+    <br><br>
+    <table class="c">
+      <thead>
+        <tr>
+          <th>Admin Name</th>
+          <th>Admin Phone Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for doctor in admin %}
+        <tr>
+          <td>{{ doctor.doc_name }}</td>
+          <td>{{ doctor.doc_phone_number }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% include 'footer_admin.html' %}
+  </body>
+  

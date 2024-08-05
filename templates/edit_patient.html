@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body class="centered">
+    {% include 'nav.html' %}
+    <br>
+    <br>
+    {% include 'back.html' %}
+    <h1 class="centered animate__animated animate__pulse">Edit Patient</h1>
+    <div class="form-container">
+        <form action="/update" method="post">
+            <input name="id" type="hidden" value="{{ person[0].id }}"><br><br>
+            <input autocomplete="off" autofocus name="name" autocapitalize="words" value="{{ person[0].name }}"
+                type="text" class="input"><br><br>
+            <input autocomplete="off" name="phone_number" value="{{ person[0].phone_number }}" type="text" class="input"
+                maxlength="11" pattern="[0-9]{11}"><br><br>
+            <input autocomplete="off" autofocus name="birthdate" value="{{ person[0].birthdate }}" type="date"
+                class="input"><br><br>
+            <div class="mydict">
+                <div>
+                    <label>
+                        <input type="radio" name="gender" {% if person[0].gender=='female' %} checked {% endif %}
+                            value="female">
+                        <span>Female</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="gender" {% if person[0].gender=='male' %} checked {% endif %}
+                            value="male">
+                        <span>Male</span>
+                    </label>
+                </div>
+            </div><br>
+            <div class="mydict">
+                <div>
+                    {% for patient_cat in patient_cat%}
+                    <label>
+                        <input type="radio" name="patient_cat" value="{{ patient_cat.category }}" {% if patient_cat.category == person[0].patient_cat %}checked{% endif %} required>
+                        <span>{{ patient_cat.category }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            <br><br>
+            <button type="submit" class="btn-blue">Update</button>
+        </form>
+</body>
+{% include 'footer_doctor.html' %}
+
+</html>

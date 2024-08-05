@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body class="centered">
+    {% include 'nav.html' %}
+    <br><br>
+
+    <h1 class="centered animate__animated animate__pulse">Edit Appointment</h1><br>
+    <form action="/update_appoint_doc" method="post" onsubmit="return confirm('Are you sure you want to edit this appointment')">
+        <select name="time" id="timeSelect" style="width: 150px; padding: 5px; border-radius: 1rem;" required>
+            <option disabled>Select Time</option>
+            {% for time in free_time %}
+                <option value="{{time}}" {% if appoint[0].time == time %}selected{% endif %}>{{time}}</option>
+            {% endfor %}
+        </select>
+        <input name="date" type="hidden" value="{{appoint[0].date}}">
+        <input name="appoint_id" type="hidden" value="{{appoint[0].appoint_id}}">
+        <select name="category" id="categorySelect" style="width: 150px; padding: 5px; border-radius: 1rem;" required>
+            <option disabled>Select Category</option>
+            {% for price in prices_cat %}
+                <option value="{{price.price_category}}" {% if appoint[0].category == price.price_category %}selected{% endif %}>{{price.price_category}}</option>
+            {% endfor %}
+        </select>
+        <div class="mydict">
+            <div>
+                <label>
+                    <input type="radio" name="status" id="" value="Done" {% if appoint[0].status == 'Done' %} checked {% endif %} required>
+                    <span>Done</span>
+                </label>
+                <label>
+                    <input type="radio" name="status" id="" value="Not Done" {% if appoint[0].status == 'Not Done' %}checked{% endif %} required>
+                    <span>Not Done</span>
+                </label>
+            </div>
+        </div>
+        <br>
+        <button type="submit" class="btn-blue">Update</button>
+    </form>
+</body>
+{% include 'footer_doctor.html' %}
+
+</html>

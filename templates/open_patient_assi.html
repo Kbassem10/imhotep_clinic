@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body>
+    {% include 'nav_assi.html' %}
+    <br><br>
+    <h1 class="centered animate__animated animate__pulse">Patient</h1>
+    <p><strong>Name:</strong> {{ person[0].name }}</p>
+    <p><strong>Phone Number:</strong> {{ person[0].phone_number }}</p>
+    <p><strong>Birthdate: </strong> {{ person[0].birthdate }}</p>
+    <p><strong>Age: </strong> {{ person[0].age }}</p>   
+    <p><strong>Gender: </strong> {{ person[0].gender }}</p>
+    <br><br>
+    <table class="c" style="text-align: center;">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Category</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detail in details %}
+            <tr>
+                <td>{{ detail.date }}</td>
+                <td>{{ detail.category }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+<br><br>
+{% include 'footer_assi.html' %}
+</html>

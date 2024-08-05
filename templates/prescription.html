@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        .logo_container {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="no-print">
+        {% include 'nav.html' %}
+        <br>
+        {% include 'back.html' %}
+    </div>
+    <br><br>
+    <h1 class="no-print animate__animated animate__pulse">Prescription</h1>
+    <div id="printableContent">
+        <div class="logo_container">
+            {% if doctor[0].logo_path %}
+            <img src="{{ url_for('static', filename = '/doc_logo/'+ doctor[0].logo_path) }}" alt="Image"
+                class="logo_img">
+            {% endif %}
+            {% if doctor[0].details %}
+            <div class="item">
+                <pre>{{ doctor[0].details }}</pre>
+            </div>
+            {% endif %}
+        </div>
+        <p><strong>Name: </strong> {{ detail[0].name }} </p>
+        <p><strong>Date: </strong> {{ detail[0].date }}</p>
+        <p><strong>Details: </strong></p>
+        <form action="/add_prescription" method="post">
+            <input name="d_id" type="hidden" value="{{ detail[0].d_id }}">
+            <div class="wrapper">
+                <textarea class="form-control full-width" rows="20" id="prescription" name="prescription"
+                    autocomplete="off" style="font-size:24px;"></textarea>
+                <button type="submit" class="btn-blue , no-print">Add</button>
+        </form>
+    </div>
+
+    <div class="no-print">
+        <button onclick="printPage()" class="btn-red">Print this page</button>
+    </div>
+
+    <script>
+        function printPage() {
+            var printableArea = document.getElementById('printableContent');
+            window.print();
+        }
+    </script>
+</body>
+{% include 'footer_doctor.html' %}
+
+</html>

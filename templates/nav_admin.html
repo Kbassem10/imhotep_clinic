@@ -1,0 +1,44 @@
+<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a href="/admin_home" title="Transactions">
+                        <i class="fas fa-money-bill"></i>
+                    </a>
+                </li>
+                <li class="nav-item" title="Show Doctors">
+                    <a href="/show_all_doctors">
+                        <i class="fas fa-stethoscope"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/show_all_assi" title="Show Assistants">
+                        <i class="fas fa-user-nurse"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/show_all_admin" title="Show Admins">
+                        <i class="fas fa-user-shield "></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/register_redirect" title="Add Users">
+                        <i class="fas fa-add "></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a>
+                        <form action="/logout" method="post" onsubmit="return confirm('Are you sure you want to logout');">
+                            <button class="transparent-button1" type="submit">
+                                <i class="fas fa-sign-out"></i>
+                            </button>
+                        </form>
+                    </a>
+                </li>
+            </ul>
+        </div>
+</nav>

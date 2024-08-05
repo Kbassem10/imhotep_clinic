@@ -1,0 +1,63 @@
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body class="centered">
+    {% include 'nav_admin.html' %}
+    {% if done %}
+        <div class="done-message">{{ done }}</div>
+    {% endif %}
+    <h1>All Transactions</h1>
+    <table>
+        <th>
+            <form action="/filter_date" id="dateFilterForm">
+                <input type="date" name="date1" autocomplete="off" class="input" id="date1Input"
+                    placeholder="From Date: ">
+                <input type="date" name="date2" autocomplete="off" class="input" id="date2Input"
+                    placeholder="To Date: ">
+                <button type="submit" class="btn-blue">Submit</button>
+            </form>
+        </th>
+        <th>
+            <form action="/backup_databse" method="post">
+                <button type="submit" class="btn-green">Backup</button>
+            </form>
+        </th>
+    </table>
+    <table class="c">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Doctor ID</th>
+                <th>Patient ID</th>
+                <th>Price</th>
+                <th>Category</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for data in datas %}
+            <tr>
+                <td>{{ data.date }}</td>
+                <td>
+                    <form action="/search_doctor_id" method="GET">
+                        <input name="doc_id" type="hidden" value="{{ data.doc_id }}">
+                        <button type="submit" class="transparent-buttonb" style="text-align: center;">{{ data.doc_id
+                            }}</button>
+                    </form>
+                </td>
+                <td>
+                    <form action="/search_patient_id" method="GET">
+                        <input name="id" type="hidden" value="{{ data.id }}">
+                        <button type="submit" class="transparent-buttonb" style="text-align: center;">{{
+                            data.id}}</button>
+                    </form>
+                </td>
+                <td>{{ data.price }}</td>
+                <td>{{ data.category }}</td>
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+{% include 'footer_admin.html' %}

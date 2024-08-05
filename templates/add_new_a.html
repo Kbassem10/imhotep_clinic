@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'css.html' %}
+</head>
+
+<body class="centered">
+    {% include 'nav_assi.html' %}
+    <br><br>
+    <h1 class="centered animate__animated animate__pulse">Add New Patient</h1><br>
+    <form action="/add_patient_a" method="post">
+        <input autocomplete="off" autofocus name="name" autocapitalize="words" placeholder="Name" type="text"
+            class="input" required size="30"><br><br>
+        <input autocomplete="off" name="phone_number" placeholder="Phone Number" type="text" class="input"
+            maxlength="11" pattern="[0-9]{11}" size="30"><br><br>
+        <input autocomplete="off" autofocus name="birthdate" placeholder="Birthdate" type="date" class="input"
+            style="width: 290px;"><br><br>
+        <div class="mydict">
+            <div>
+                <label>
+                    <input type="radio" name="gender" id="female" value="female" required>
+                    <span>Female</span>
+                </label>
+                <label>
+                    <input type="radio" name="gender" id="male" value="male" required>
+                    <span>Male</span>
+                </label>
+            </div>
+        </div>
+        <div class="mydict">
+            <div>
+                {% for patient_cat in patient_cat%}
+                <label>
+                    <input type="radio" name="patient_cat" value="{{ patient_cat.category }}" required>
+                    <span>{{ patient_cat.category }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        <br><br>
+        <button type="submit" class="btn-blue">Add</button>
+    </form>
+    </div>
+    <div class="text-centered">
+        <img src="{{ url_for('static', filename='imhotepclinic.png') }}" height="200" width="auto" alt="Imhotep Clinic">
+    </div>
+</body>
+{% include 'footer_assi.html' %}
+
+</html>

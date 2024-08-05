@@ -1,0 +1,83 @@
+<head>
+    {% include 'css.html' %}
+    <script>
+        function validatePassword() {
+            var password = document.getElementById("password").value;
+            var confirmPassword = document.getElementById("confirm_password").value;
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match!");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+
+<body style="background-color:  #202761;">
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+    {% include 'back.html' %}
+    <br><br><br><br>
+    <div class="login-box">
+        <h1 class="centered animate__animated animate__pulse" style="color: white;">Register</h1>
+        <form action="/register" method="post" onsubmit="return validatePassword()">
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="doc_name" type="text" required="">
+                <label>Name</label>
+            </div>
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="doc_phone_number" type="text" required="" maxlength="11"
+                    pattern="[0-9]{11}">
+                <label>Phone Number</label>
+            </div>
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="username" type="text" required="">
+                <label>Username</label>
+            </div>
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="password" type="password" required="" id="password">
+                <label>Password</label>
+            </div>
+            <div class="user-box">
+                <input autocomplete="off" autofocus name="confirm_password" type="password" required=""
+                    id="confirm_password">
+                <label>Confirm Password</label>
+            </div>
+            <input type="hidden" name="user_cat" value="admin">
+            <a>
+                <button type="submit" class="transparent-button1">Add</button>
+                <span></span>
+            </a>
+        </form>
+    </div>
+</body>
+<script>
+    // Get the input and select elements
+    const searchInput = document.getElementById('searchInput');
+    const categorySelect = document.getElementById('categorySelect');
+    const options = [...categorySelect.options]; // Convert options to an array
+
+    // Event listener for the input field
+    searchInput.addEventListener('input', function () {
+        const searchText = searchInput.value.toLowerCase();
+
+        // Filter options based on user input
+        const filteredOptions = options.filter(option => {
+            const optionText = option.textContent.toLowerCase();
+            return optionText.includes(searchText);
+        });
+
+        // Update the select dropdown with filtered options
+        categorySelect.innerHTML = ''; // Clear previous options
+
+        // Add filtered options to the select dropdown
+        filteredOptions.forEach(option => {
+            categorySelect.appendChild(option);
+        });
+    });
+
+</script>
+
+</html>

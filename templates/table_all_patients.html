@@ -1,0 +1,54 @@
+<head>
+  {% include 'css.html' %}
+</head>
+
+<body class="centered">
+  {% include 'nav_admin.html' %}
+  <br>
+  {% if notification %}
+  <div class="done-message">{{ notification }}</div>
+  {% endif %}
+  <table class="c">
+    <thead>
+      <tr>
+        <th>Patient ID</th>
+        <th>Doctor ID</th>
+        <th>Name</th>
+        <th>Phone Number</th>
+        <th>Gender</th>
+        <th>Birthdate</th>
+        <th>Age</th>
+        <th>Category</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for person in patients %}
+      <tr>
+        <td>{{ person.id }}</td>
+        <td>
+          <form action="/search_doctor_id" method="GET">
+            <input name="doc_id" type="hidden" value="{{ person.doc_id }}">
+            <button type="submit" class="transparent-buttonb">{{ person.doc_id
+              }}</button>
+          </form>
+        </td>
+        <td>{{ person.name }}</td>
+        <td>{{ person.phone_number }}</td>
+        <td>{{ person.gender }}</td>
+        <td>{{ person.birthdate }}</td>
+        <td>{{ person.age }}</td>
+        <td>{{ person.patient_cat }}</td>
+        <td>
+          <form action="/delete_patient" method="post"
+            onsubmit="return confirm('Are you sure you want to delete this patient');">
+            <input name="id" type="hidden" value="{{ person.id }}">
+            <button type="submit" class="btn btn-red" style="width: 100%;">Delete</button>
+          </form>
+        </td>
+        {% endfor %}
+    </tbody>
+  </table>
+
+</body>
+{% include 'footer_admin.html' %}
