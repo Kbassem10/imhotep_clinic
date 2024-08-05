@@ -9,7 +9,6 @@
       <div class="error-message">{{ error }}</div>
       {% endif %}
       <h2>Upload Image</h2>
-<<<<<<< HEAD
       <form action = "/upload_image" method = "POST"  enctype="multipart/form-data" id="upload-form">
          <div class="grid w-full max-w-xs items-center gap-1.5">
             <label class="text-sm text-gray-400 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Picture</label>
@@ -26,15 +25,4 @@
           document.getElementById("upload-form").submit();
       }
   </script>
-=======
-      <form action = "/upload_image" method = "POST" enctype = "multipart/form-data">
-         <div class="grid w-full max-w-xs items-center gap-1.5">
-            <label class="text-sm text-gray-400 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Picture</label>
-            <input id="picture" type="file" name="file" class="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm text-gray-400 file:border-0 file:bg-transparent file:text-gray-600 file:text-sm file:font-medium">
-      </div>
-         <button class="btn-blue" type="submit">Upload</button>
-      </form>
-   </body>
-   {% include 'footer_doctor.html' %}
->>>>>>> imhotep_clinic/main
 </html>

@@ -21,7 +21,6 @@
     <p><strong>Patient Category: </strong> {{ person[0].patient_cat }}</p>
     <form action="/add_details_redirect" method="post">
         <input name="id" type="hidden" value="{{ person[0].id }}">
-<<<<<<< HEAD
         <button type="submit" class="btn btn-blue">
             <i class="fas fa-add"></i>
         </button>
@@ -31,13 +30,6 @@
         <button type="submit" class="btn btn-green"">
             <i class="fas fa-pen">&nbsp;&nbsp;</i>
         </button>
-=======
-        <button type="submit" class="btn btn-blue">Add Record</button>
-    </form>
-    <form action="/edit_patient" method="post">
-        <input name="id" type="hidden" value="{{ person[0].id }}">
-        <button type="submit" class="btn btn-green"">Edit Patient</button>
->>>>>>> imhotep_clinic/main
       </form>
     <br><br>
     <table class="c">

@@ -65,25 +65,17 @@
             <form action="/delete_patient" method="post"
               onsubmit="return confirm('Are you sure you want to delete this patient');">
               <input name="id" type="hidden" value="{{ person.id }}">
-<<<<<<< HEAD
               <button type="submit" class="btn btn-red">
                 <i class="fas fa-trash"></i>
               </button>
-=======
-              <button type="submit" class="btn btn-red" style="width: 100%;">Delete</button>
->>>>>>> imhotep_clinic/main
             </form>
           
         {% if shape == "all" %}
         
           <form action="/add_appoint_date_doc_redirect" method="post">
             <input name="id" type="hidden" value="{{ person.id }}">
-<<<<<<< HEAD
             <button type="submit" class="btn-orange">
               <i class="fas fa-calendar-plus"></i></button>
-=======
-            <button type="submit" class="btn-orange" style="width: 100%;"><br>Add Appoint<br>‎</button>
->>>>>>> imhotep_clinic/main
           </form>
         
         {% elif shape == "notes" %}
