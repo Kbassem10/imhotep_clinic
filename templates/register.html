@@ -20,27 +20,16 @@
 
 <body style="background-color: #202761;">
     {% include 'nav_admin.html' %}
-    <div class="centered-content">
-        <table style="background-color: #202761;">
-            <tr>
-                <td>
-                    <form action="/register_a_redirect">
-                        <button class="btn-new animate__animated animate__pulse">Add Assistant</button>
-                    </form>
-                </td>
-                <td>
-                    <form action="/register_admin_redirect">
-                        <button class="btn-new animate__animated animate__pulse">Add Admin</button>
-                    </form>
-                </td>
-                <td>
-                    <form action="/register_doctor_redirect">
-                        <button class="btn-new animate__animated animate__pulse">Add Doctor</button>
-                    </form>
-                </td>
-            </tr>
-        </table>
+    <div style="text-align: center;">
+        <form action="/register_a_redirect">
+            <button class="btn-new animate__animated animate__pulse">Add Assistant</button>
+        </form>
+        <form action="/register_admin_redirect">
+            <button class="btn-new animate__animated animate__pulse">Add Admin</button>
+        </form>
+        <form action="/register_doctor_redirect">
+            <button class="btn-new animate__animated animate__pulse">Add Doctor</button>
+        </form>
     </div>
 </body>
-
 </html>
